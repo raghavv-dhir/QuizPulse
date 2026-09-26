@@ -9,12 +9,14 @@ import {
   Trash2,
   X,
   FileText,
+  Sparkles,
 } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [exemplarLoading, setExemplarLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -45,6 +47,97 @@ export const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     loadQuizzes();
   }, []);
+
+  const handleCreateExemplarQuiz = async () => {
+    try {
+      setExemplarLoading(true);
+      const created = await api.admin.createQuiz({
+        title: 'Global Tech & Science Speed Showdown 2026',
+        description: 'Official exemplar speed showdown testing computer science, algorithms, distributed systems, and web standards with millisecond score decay.',
+        mode: 'TEAM',
+        defaultQuestionDurationSeconds: 15,
+        maxScorePerQuestion: 1000,
+        scoringStrategy: 'LINEAR',
+        negativeMarking: false,
+        negativePoints: 0,
+        immediateFeedback: true,
+        allowReconnection: true,
+      });
+
+      const sampleQuestions = [
+        {
+          questionText: 'What is the worst-case time complexity of quicksort when using deterministic last-element pivoting on already-sorted input?',
+          durationSeconds: 15,
+          maxScore: 1000,
+          displayOrder: 1,
+          options: [
+            { optionText: 'O(n log n)', isCorrect: false, displayOrder: 1 },
+            { optionText: 'O(n²)', isCorrect: true, displayOrder: 2 },
+            { optionText: 'O(n)', isCorrect: false, displayOrder: 3 },
+            { optionText: 'O(log n)', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'Which HTTP status code is standardized for client-side API Rate Limiting violations?',
+          durationSeconds: 15,
+          maxScore: 1000,
+          displayOrder: 2,
+          options: [
+            { optionText: '403 Forbidden', isCorrect: false, displayOrder: 1 },
+            { optionText: '429 Too Many Requests', isCorrect: true, displayOrder: 2 },
+            { optionText: '503 Service Unavailable', isCorrect: false, displayOrder: 3 },
+            { optionText: '408 Request Timeout', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'What consensus protocol is natively utilized by etcd and HashiCorp Consul to coordinate distributed cluster state?',
+          durationSeconds: 15,
+          maxScore: 1000,
+          displayOrder: 3,
+          options: [
+            { optionText: 'Paxos', isCorrect: false, displayOrder: 1 },
+            { optionText: 'Raft', isCorrect: true, displayOrder: 2 },
+            { optionText: 'Proof of Stake', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Two-Phase Commit', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'In PostgreSQL, which index type is specifically optimized for full-text search and array containment queries?',
+          durationSeconds: 15,
+          maxScore: 1000,
+          displayOrder: 4,
+          options: [
+            { optionText: 'B-Tree', isCorrect: false, displayOrder: 1 },
+            { optionText: 'GIN (Generalized Inverted Index)', isCorrect: true, displayOrder: 2 },
+            { optionText: 'Hash Index', isCorrect: false, displayOrder: 3 },
+            { optionText: 'BRIN (Block Range Index)', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'During a standard TCP 3-way handshake, what packet does the server reply with upon receiving the client SYN?',
+          durationSeconds: 15,
+          maxScore: 1000,
+          displayOrder: 5,
+          options: [
+            { optionText: 'SYN-ACK', isCorrect: true, displayOrder: 1 },
+            { optionText: 'ACK only', isCorrect: false, displayOrder: 2 },
+            { optionText: 'FIN-ACK', isCorrect: false, displayOrder: 3 },
+            { optionText: 'RST packet', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+      ];
+
+      for (const q of sampleQuestions) {
+        await api.questions.add(created.id, q);
+      }
+
+      navigate(`/admin/quizzes/${created.id}/control`);
+    } catch (err: any) {
+      alert(err.message || 'Failed to create exemplar quiz');
+    } finally {
+      setExemplarLoading(false);
+    }
+  };
 
   const handleCreateQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,13 +200,28 @@ export const AdminDashboardPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="btn-primary text-xs"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Competition</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleCreateExemplarQuiz}
+            disabled={exemplarLoading}
+            className="btn-secondary text-xs !border-[#BFDBFE] !bg-[#EFF6FF] !text-[#1D4ED8] hover:!bg-[#DBEAFE] transition"
+          >
+            {exemplarLoading ? (
+              <span className="w-3.5 h-3.5 border-2 border-[#1D4ED8]/30 border-t-[#1D4ED8] rounded-full animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" />
+            )}
+            <span>{exemplarLoading ? 'Generating...' : '⚡ Load Exemplar Competition'}</span>
+          </button>
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="btn-primary text-xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Competition</span>
+          </button>
+        </div>
       </div>
 
       {/* Metric Layout (Section 10) */}
