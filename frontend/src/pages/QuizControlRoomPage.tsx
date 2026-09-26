@@ -10,7 +10,6 @@ import { useQuizWebSocket } from '../hooks/useQuizWebSocket';
 import { CountdownTimer } from '../components/CountdownTimer';
 import {
   Play,
-  SkipForward,
   StopCircle,
   Pause,
   RotateCcw,
@@ -256,25 +255,27 @@ export const QuizControlRoomPage: React.FC = () => {
 
             {isLive && (
               <>
+                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-extrabold shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-indigo-600 animate-ping" />
+                  <span className="w-2 h-2 rounded-full bg-indigo-600 -ml-3" />
+                  <span>
+                    {quiz.status === 'QUESTION_ENDED'
+                      ? '⏱ Auto-advancing to next question...'
+                      : '⚡ Auto-Timer Enabled'}
+                  </span>
+                </div>
+
                 {isQuestionActive && (
                   <button
                     disabled={actionLoading}
                     onClick={() => handleAction(() => api.admin.endQuestion(quizId))}
                     className="btn-secondary text-xs !h-11 !bg-sky-50 !border-sky-200 !text-sky-700 hover:!bg-sky-100"
+                    title="Manually reveal answer before timer runs out"
                   >
                     <StopCircle className="w-4 h-4" />
-                    <span>Reveal Answer 👁</span>
+                    <span>Reveal Early 👁</span>
                   </button>
                 )}
-
-                <button
-                  disabled={actionLoading}
-                  onClick={() => handleAction(() => api.admin.nextQuestion(quizId))}
-                  className="btn-primary text-xs !h-11 shadow-md shadow-indigo-500/20"
-                >
-                  <SkipForward className="w-4 h-4" />
-                  <span>Next Question ⏭</span>
-                </button>
 
                 <button
                   disabled={actionLoading}

@@ -17,14 +17,22 @@ import com.example.quiz.exception.ResourceNotFoundException;
 import com.example.quiz.repository.*;
 import com.example.quiz.service.scoring.ScoringEngine;
 import com.example.quiz.websocket.QuizWebSocketService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +54,17 @@ public class QuizEngineService {
     private final QuizWebSocketService webSocketService;
     private final QuestionService questionService;
     private final TeamService teamService;
+    private final PlatformTransactionManager transactionManager;
+
+    private TransactionTemplate transactionTemplate;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
+    private final Map<Long, ScheduledFuture<?>> scheduledQuestionFutures = new ConcurrentHashMap<>();
+    private final Map<Long, ScheduledFuture<?>> scheduledIntermissionFutures = new ConcurrentHashMap<>();
+
+    @PostConstruct
+    public void init() {
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
 
     @Transactional
     public void openRegistration(Long quizId) {
@@ -93,6 +112,8 @@ public class QuizEngineService {
 
     @Transactional
     public void startNextQuestion(Long quizId, Long adminId) {
+        cancelTimers(quizId);
+
         Quiz quiz = getQuiz(quizId);
 
         // 1. End any active session
@@ -143,13 +164,21 @@ public class QuizEngineService {
         payload.put("serverStartTimeMs", now);
         payload.put("durationMs", durationMs);
 
-        log.info("Started question {}/{} for quiz id: {}", nextIndex, questions.size(), quizId);
+        log.info("Started question {}/{} for quiz id: {}. Duration: {}s. Auto-advance scheduled.",
+                nextIndex, questions.size(), quizId, currentQuestion.getDurationSeconds());
         webSocketService.broadcastQuizEvent(quizId, "QUESTION_STARTED", payload);
+
+        // Auto-end question when timer expires
+        scheduleQuestionAutoEnd(quizId, savedSession.getId(), nextIndex, questions.size(), durationMs);
     }
 
     @Transactional
     public void endCurrentQuestion(Long quizId, Long adminId) {
+        cancelQuestionTimer(quizId);
+
         Quiz quiz = getQuiz(quizId);
+        List<Question> questions = questionRepository.findByQuizIdOrderByDisplayOrderAsc(quizId);
+        int totalQuestions = questions.size();
 
         sessionRepository.findFirstByQuizIdAndSessionStatusOrderByCreatedAtDesc(quizId, SessionStatus.ACTIVE)
                 .ifPresent(activeSession -> {
@@ -177,17 +206,25 @@ public class QuizEngineService {
                     payload.put("correctCount", correctCount);
                     payload.put("incorrectCount", incorrectCount);
                     payload.put("leaderboard", leaderboard);
+                    payload.put("questionIndex", quiz.getCurrentQuestionIndex());
+                    payload.put("totalQuestions", totalQuestions);
+                    payload.put("nextQuestionInSeconds", 4);
+                    payload.put("isLastQuestion", quiz.getCurrentQuestionIndex() >= totalQuestions);
 
                     quiz.setStatus(QuizStatus.QUESTION_ENDED);
                     quizRepository.save(quiz);
 
-                    log.info("Ended question id: {} for quiz id: {}", question.getId(), quizId);
+                    log.info("Ended question id: {} for quiz id: {}. Auto-advancing in 4 seconds.", question.getId(), quizId);
                     webSocketService.broadcastQuizEvent(quizId, "QUESTION_ENDED", payload);
+
+                    // Auto-advance to next question or completion after 4 seconds
+                    scheduleNextStep(quizId, quiz.getCurrentQuestionIndex(), totalQuestions);
                 });
     }
 
     @Transactional
     public void pauseQuiz(Long quizId, Long adminId) {
+        cancelTimers(quizId);
         Quiz quiz = getQuiz(quizId);
         quiz.setStatus(QuizStatus.PAUSED);
         quizRepository.save(quiz);
@@ -200,10 +237,20 @@ public class QuizEngineService {
         quiz.setStatus(QuizStatus.QUESTION_ACTIVE);
         quizRepository.save(quiz);
         webSocketService.broadcastQuizEvent(quizId, "QUIZ_RESUMED", Map.of("quizId", quizId));
+
+        sessionRepository.findFirstByQuizIdAndSessionStatusOrderByCreatedAtDesc(quizId, SessionStatus.ACTIVE)
+                .ifPresent(session -> {
+                    long elapsed = System.currentTimeMillis() - session.getServerStartTimeMs();
+                    long remainingMs = Math.max(1000L, session.getDurationMs() - elapsed);
+                    List<Question> questions = questionRepository.findByQuizIdOrderByDisplayOrderAsc(quizId);
+                    scheduleQuestionAutoEnd(quizId, session.getId(), quiz.getCurrentQuestionIndex(), questions.size(), remainingMs);
+                });
     }
 
     @Transactional
     public void finishQuiz(Long quizId, Long adminId) {
+        cancelTimers(quizId);
+
         Quiz quiz = getQuiz(quizId);
 
         sessionRepository.findFirstByQuizIdAndSessionStatusOrderByCreatedAtDesc(quizId, SessionStatus.ACTIVE)
@@ -227,6 +274,79 @@ public class QuizEngineService {
 
         log.info("Quiz id: {} COMPLETED. Final standings calculated.", quizId);
         webSocketService.broadcastQuizEvent(quizId, "QUIZ_FINISHED", payload);
+        webSocketService.broadcastQuizEvent(quizId, "QUIZ_COMPLETED", payload);
+    }
+
+    private void scheduleQuestionAutoEnd(Long quizId, Long sessionId, int questionIndex, int totalQuestions, long durationMs) {
+        cancelQuestionTimer(quizId);
+
+        ScheduledFuture<?> future = scheduler.schedule(() -> {
+            try {
+                if (transactionTemplate == null) return;
+                transactionTemplate.execute(status -> {
+                    sessionRepository.findFirstByQuizIdAndSessionStatusOrderByCreatedAtDesc(quizId, SessionStatus.ACTIVE)
+                            .ifPresent(activeSession -> {
+                                if (activeSession.getId().equals(sessionId)) {
+                                    log.info("Timer expired for quiz {} question {}/{}. Triggering auto-end.", quizId, questionIndex, totalQuestions);
+                                    endCurrentQuestion(quizId, null);
+                                }
+                            });
+                    return null;
+                });
+            } catch (Exception e) {
+                log.error("Failed to execute auto-end timer for quiz {}", quizId, e);
+            }
+        }, durationMs, TimeUnit.MILLISECONDS);
+
+        scheduledQuestionFutures.put(quizId, future);
+    }
+
+    private void scheduleNextStep(Long quizId, int currentIndex, int totalQuestions) {
+        cancelIntermissionTimer(quizId);
+
+        ScheduledFuture<?> future = scheduler.schedule(() -> {
+            try {
+                if (transactionTemplate == null) return;
+                transactionTemplate.execute(status -> {
+                    Quiz q = quizRepository.findById(quizId).orElse(null);
+                    if (q == null || q.getStatus() == QuizStatus.COMPLETED || q.getStatus() == QuizStatus.PAUSED) {
+                        return null;
+                    }
+
+                    if (currentIndex < totalQuestions) {
+                        log.info("Auto-advancing quiz {} to question {}/{}", quizId, currentIndex + 1, totalQuestions);
+                        startNextQuestion(quizId, null);
+                    } else {
+                        log.info("Auto-finishing quiz {} after last question", quizId);
+                        finishQuiz(quizId, null);
+                    }
+                    return null;
+                });
+            } catch (Exception e) {
+                log.error("Failed to execute auto-next timer for quiz {}", quizId, e);
+            }
+        }, 4000, TimeUnit.MILLISECONDS);
+
+        scheduledIntermissionFutures.put(quizId, future);
+    }
+
+    public void cancelTimers(Long quizId) {
+        cancelQuestionTimer(quizId);
+        cancelIntermissionTimer(quizId);
+    }
+
+    private void cancelQuestionTimer(Long quizId) {
+        ScheduledFuture<?> future = scheduledQuestionFutures.remove(quizId);
+        if (future != null) {
+            future.cancel(false);
+        }
+    }
+
+    private void cancelIntermissionTimer(Long quizId) {
+        ScheduledFuture<?> future = scheduledIntermissionFutures.remove(quizId);
+        if (future != null) {
+            future.cancel(false);
+        }
     }
 
     @Transactional

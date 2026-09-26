@@ -124,7 +124,7 @@ export const LiveQuizRoomPage: React.FC = () => {
         setIsPaused(true);
       } else if (event.eventType === 'QUIZ_RESUMED') {
         setIsPaused(false);
-      } else if (event.eventType === 'QUIZ_COMPLETED') {
+      } else if (event.eventType === 'QUIZ_COMPLETED' || event.eventType === 'QUIZ_FINISHED') {
         setQuizFinished(true);
         setQuizState((prev) => (prev ? { ...prev, status: 'COMPLETED' } : null));
         setTimeout(() => {
@@ -410,6 +410,15 @@ export const LiveQuizRoomPage: React.FC = () => {
                       <span className="text-[10px] font-bold text-rose-600 uppercase block">Wrong</span>
                       <span className="text-base font-extrabold text-rose-700">{questionEndedData.incorrectCount}</span>
                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold text-xs">
+                    <span className="w-2 h-2 rounded-full bg-indigo-600 animate-ping" />
+                    <span>
+                      {quizState.currentQuestionIndex >= quizState.totalQuestions
+                        ? '🏁 Final Round concluded! Loading podium...'
+                        : '⏱ Next question starting automatically in 4s...'}
+                    </span>
                   </div>
                 </div>
               )}
