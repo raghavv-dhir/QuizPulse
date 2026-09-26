@@ -21,10 +21,15 @@ export function useQuizWebSocket({ quizId, teamId, onEvent }: UseQuizWebSocketPr
   useEffect(() => {
     if (!quizId) return;
 
+    const prodBackend = 'https://quizpulse-backend-m0wk.onrender.com';
+    const baseBackend = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
+      : (import.meta.env.PROD ? prodBackend : '');
+
     const wsUrl = import.meta.env.VITE_WS_URL
       ? import.meta.env.VITE_WS_URL
-      : import.meta.env.VITE_API_URL
-      ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/ws`
+      : baseBackend
+      ? `${baseBackend}/ws`
       : '/ws';
 
     // Use SockJS fallback or ws protocol

@@ -12,9 +12,11 @@ import {
   AnswerResult,
 } from '../types/quiz';
 
+const RENDER_PROD_URL = 'https://quizpulse-backend-m0wk.onrender.com';
+
 const API_BASE = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
-  : '';
+  : (import.meta.env.PROD ? RENDER_PROD_URL : '');
 
 const BASE_URL = API_BASE ? `${API_BASE}/api` : '/api';
 
@@ -59,6 +61,16 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers,
   });
 
+  const text = await response.text();
+  let data: any = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { message: text };
+    }
+  }
+
   if (response.status === 401) {
     // Unauthorized
     setAuthToken(null);
@@ -66,13 +78,20 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
       window.location.href = '/login';
     }
+    throw new Error('Your session has expired. Please sign in again.');
   }
 
-  const data = await response.json();
+  if (response.status === 403) {
+    throw new Error(data?.message || 'Access denied. Admin privileges required. Please sign in with an Admin account.');
+  }
 
   if (!response.ok) {
-    const errorMsg = data.message || `Request failed with status ${response.status}`;
+    const errorMsg = data?.message || `Request failed with status ${response.status} (${response.statusText || 'Error'})`;
     throw new Error(errorMsg);
+  }
+
+  if (!data) {
+    return {} as T;
   }
 
   return data.data !== undefined ? data.data : data;
