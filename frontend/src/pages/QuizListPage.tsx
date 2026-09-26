@@ -110,46 +110,46 @@ export const QuizListPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-12 pb-16">
+    <div className="space-y-8 sm:space-y-12 pb-16">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50/70 via-white to-canvas pt-12 pb-16 px-4 sm:px-6 border-b border-slate-200/60">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-indigo-200/80 shadow-sm text-indigo-700 text-xs font-bold">
+      <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50/70 via-white to-canvas pt-8 sm:pt-12 pb-10 sm:pb-16 px-3.5 sm:px-6 border-b border-slate-200/60">
+        <div className="max-w-4xl mx-auto text-center space-y-4 sm:space-y-6">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-indigo-200/80 shadow-sm text-indigo-700 text-[11px] sm:text-xs font-bold">
             <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
             <span>Real-Time Speed Competition Platform</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.1]">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.1]">
             Fast, Energetic <br className="hidden sm:inline" />
             <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-pink-600 bg-clip-text text-transparent">
               Live Quiz Battles
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto font-medium">
+          <p className="text-xs sm:text-lg text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
             Answer questions quickly for maximum bonus points. Compete solo or form teams with friends in live synchronized rounds.
           </p>
 
           {/* Big Game PIN Input Box */}
-          <div className="pt-2 max-w-md mx-auto">
+          <div className="pt-1 max-w-md mx-auto">
             <form
               onSubmit={handleJoinPin}
-              className="bg-white p-2.5 rounded-2xl shadow-xl shadow-indigo-500/10 border-2 border-indigo-200 flex flex-col sm:flex-row items-center gap-2"
+              className="bg-white p-2 sm:p-2.5 rounded-2xl shadow-xl shadow-indigo-500/10 border-2 border-indigo-200 flex flex-col sm:flex-row items-center gap-2"
             >
               <div className="relative w-full flex-1">
-                <Key className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Key className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   required
                   placeholder="Enter Game PIN or Quiz ID..."
                   value={gamePin}
                   onChange={(e) => setGamePin(e.target.value)}
-                  className="w-full h-12 pl-11 pr-4 bg-transparent text-slate-900 font-bold placeholder:text-slate-400 placeholder:font-normal text-sm sm:text-base outline-none"
+                  className="w-full h-11 sm:h-12 pl-10 pr-3 sm:pl-11 sm:pr-4 bg-transparent text-slate-900 font-bold placeholder:text-slate-400 placeholder:font-normal text-xs sm:text-base outline-none"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full sm:w-auto h-12 px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-extrabold text-sm shadow-md transition-all shrink-0 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto h-11 sm:h-12 px-5 sm:px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-extrabold text-xs sm:text-sm shadow-md transition-all shrink-0 flex items-center justify-center gap-2"
               >
                 <span>Join Game</span>
                 <ArrowRight className="w-4 h-4" />

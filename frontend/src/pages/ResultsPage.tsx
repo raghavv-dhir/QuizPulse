@@ -69,15 +69,15 @@ export const ResultsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-10">
+    <div className="max-w-4xl mx-auto px-3.5 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-10">
       {/* Top Celebratory Header */}
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 shadow-sm">
+      <div className="text-center space-y-2 sm:space-y-3">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-[11px] sm:text-xs font-bold border border-amber-200 shadow-sm">
           <Trophy className="w-3.5 h-3.5 text-amber-600" />
           <span>Competition Concluded</span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
           {quizTitle}
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 font-medium">
@@ -85,72 +85,72 @@ export const ResultsPage: React.FC = () => {
         </p>
 
         {myRank && (
-          <div className="inline-flex items-center gap-3 bg-indigo-50 border border-indigo-200/80 px-4 py-2 rounded-2xl shadow-sm">
-            <span className="text-xs font-bold text-indigo-700">Your Result:</span>
-            <span className="text-sm font-black text-indigo-900 font-mono">
+          <div className="inline-flex items-center gap-2 sm:gap-3 bg-indigo-50 border border-indigo-200/80 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-sm text-xs sm:text-sm">
+            <span className="font-bold text-indigo-700">Your Result:</span>
+            <span className="font-black text-indigo-900 font-mono">
               Rank #{myRank}
             </span>
-            <span className="text-xs font-extrabold text-indigo-600 bg-white px-2.5 py-0.5 rounded-lg border border-indigo-100">
+            <span className="font-extrabold text-indigo-600 bg-white px-2 py-0.5 rounded-lg border border-indigo-100 text-xs">
               {myTotalScore} pts
             </span>
           </div>
         )}
       </div>
 
-      {/* Fun 1st, 2nd, 3rd Podium */}
+      {/* Fun 1st, 2nd, 3rd Podium (Responsive) */}
       {top3.length > 0 && (
-        <div className="pt-4 pb-2">
-          <div className="grid grid-cols-3 gap-3 sm:gap-4 items-end max-w-2xl mx-auto text-center">
+        <div className="pt-2 sm:pt-4 pb-2">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 items-end max-w-2xl mx-auto text-center">
             {/* 2nd Place */}
             {top3[1] ? (
-              <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-2 order-1 h-56 flex flex-col justify-between">
-                <div className="space-y-1">
-                  <span className="text-2xl">🥈</span>
-                  <span className="text-[10px] font-black uppercase text-slate-400 block">2nd Place</span>
-                  <h4 className="text-sm sm:text-base font-extrabold text-slate-900 truncate">{top3[1].name}</h4>
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-5 border border-slate-200 shadow-sm space-y-1 sm:space-y-2 order-1 h-44 sm:h-56 flex flex-col justify-between">
+                <div className="space-y-0.5 sm:space-y-1">
+                  <span className="text-xl sm:text-2xl">🥈</span>
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 block">2nd</span>
+                  <h4 className="text-xs sm:text-base font-extrabold text-slate-900 truncate">{top3[1].name}</h4>
                 </div>
-                <div className="bg-slate-50 rounded-2xl p-2.5 border border-slate-100">
-                  <span className="font-mono font-black text-base text-slate-800 block">
+                <div className="bg-slate-50 rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5 border border-slate-100">
+                  <span className="font-mono font-black text-xs sm:text-base text-slate-800 block">
                     {top3[1].totalScore.toLocaleString()}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-semibold">points</span>
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 font-semibold">pts</span>
                 </div>
               </div>
             ) : <div className="order-1" />}
 
             {/* 1st Place (Winner) */}
             {top3[0] && (
-              <div className="bg-gradient-to-b from-amber-50 to-white rounded-3xl p-5 sm:p-6 border-2 border-amber-300 shadow-xl shadow-amber-500/10 space-y-2 order-2 h-68 sm:h-72 flex flex-col justify-between relative scale-105">
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-900 font-black text-[10px] uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md">
+              <div className="bg-gradient-to-b from-amber-50 to-white rounded-2xl sm:rounded-3xl p-3 sm:p-6 border-2 border-amber-300 shadow-xl shadow-amber-500/10 space-y-1 sm:space-y-2 order-2 h-54 sm:h-72 flex flex-col justify-between relative scale-[1.03] sm:scale-105">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-900 font-black text-[9px] sm:text-[10px] uppercase tracking-wider px-2 sm:px-3 py-0.5 rounded-full shadow-md shrink-0 whitespace-nowrap">
                   👑 Winner
                 </div>
-                <div className="space-y-1 pt-2">
-                  <span className="text-4xl">🥇</span>
-                  <span className="text-[10px] font-black uppercase text-amber-700 block">Champion</span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 truncate">{top3[0].name}</h3>
+                <div className="space-y-0.5 sm:space-y-1 pt-1.5 sm:pt-2">
+                  <span className="text-3xl sm:text-4xl">🥇</span>
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-700 block">Champion</span>
+                  <h3 className="text-xs sm:text-lg font-black text-slate-900 truncate">{top3[0].name}</h3>
                 </div>
-                <div className="bg-amber-100/70 rounded-2xl p-3 border border-amber-200">
-                  <span className="font-mono font-black text-xl text-amber-950 block">
+                <div className="bg-amber-100/70 rounded-xl sm:rounded-2xl p-2 sm:p-3 border border-amber-200">
+                  <span className="font-mono font-black text-sm sm:text-xl text-amber-950 block">
                     {top3[0].totalScore.toLocaleString()}
                   </span>
-                  <span className="text-[10px] text-amber-700 font-bold">points</span>
+                  <span className="text-[9px] sm:text-[10px] text-amber-700 font-bold">points</span>
                 </div>
               </div>
             )}
 
             {/* 3rd Place */}
             {top3[2] ? (
-              <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-2 order-3 h-48 flex flex-col justify-between">
-                <div className="space-y-1">
-                  <span className="text-2xl">🥉</span>
-                  <span className="text-[10px] font-black uppercase text-slate-400 block">3rd Place</span>
-                  <h4 className="text-sm sm:text-base font-extrabold text-slate-900 truncate">{top3[2].name}</h4>
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-5 border border-slate-200 shadow-sm space-y-1 sm:space-y-2 order-3 h-38 sm:h-48 flex flex-col justify-between">
+                <div className="space-y-0.5 sm:space-y-1">
+                  <span className="text-xl sm:text-2xl">🥉</span>
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 block">3rd</span>
+                  <h4 className="text-xs sm:text-base font-extrabold text-slate-900 truncate">{top3[2].name}</h4>
                 </div>
-                <div className="bg-slate-50 rounded-2xl p-2.5 border border-slate-100">
-                  <span className="font-mono font-black text-base text-slate-800 block">
+                <div className="bg-slate-50 rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5 border border-slate-100">
+                  <span className="font-mono font-black text-xs sm:text-base text-slate-800 block">
                     {top3[2].totalScore.toLocaleString()}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-semibold">points</span>
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 font-semibold">pts</span>
                 </div>
               </div>
             ) : <div className="order-3" />}
@@ -159,7 +159,7 @@ export const ResultsPage: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200 shadow-sm space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <button

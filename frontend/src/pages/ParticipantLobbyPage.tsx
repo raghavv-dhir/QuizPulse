@@ -159,15 +159,15 @@ export const ParticipantLobbyPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+    <div className="max-w-3xl mx-auto px-3.5 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
       {/* Top Game PIN Banner */}
-      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-500/15 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-white shadow-xl shadow-indigo-500/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
         <div className="space-y-1">
-          <span className="text-[11px] font-black uppercase tracking-widest text-indigo-200 block">
+          <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-indigo-200 block">
             Game Room PIN
           </span>
           <div className="flex items-center gap-3">
-            <span className="text-4xl sm:text-5xl font-black font-mono tracking-wider">
+            <span className="text-3xl sm:text-5xl font-black font-mono tracking-wider">
               #{quiz.id}
             </span>
             <button
@@ -175,18 +175,18 @@ export const ParticipantLobbyPage: React.FC = () => {
               className="px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-xs font-bold text-white transition flex items-center gap-1.5"
             >
               {copiedPin ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedPin ? 'Copied PIN!' : 'Copy PIN'}</span>
+              <span>{copiedPin ? 'Copied!' : 'Copy PIN'}</span>
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 sm:self-center">
-          <div className="w-10 h-10 rounded-xl bg-white text-indigo-700 flex items-center justify-center font-black text-sm shadow-md">
+        <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border border-white/20 sm:self-center">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-indigo-700 flex items-center justify-center font-black text-sm shadow-md shrink-0">
             {user?.fullName ? user.fullName[0].toUpperCase() : 'U'}
           </div>
-          <div>
-            <span className="text-[11px] text-indigo-200 block font-medium">Logged In As</span>
-            <span className="text-sm font-extrabold text-white block">
+          <div className="min-w-0">
+            <span className="text-[10px] text-indigo-200 block font-medium">Logged In As</span>
+            <span className="text-xs sm:text-sm font-extrabold text-white block truncate">
               {user?.fullName || user?.username}
             </span>
           </div>
@@ -194,13 +194,13 @@ export const ParticipantLobbyPage: React.FC = () => {
       </div>
 
       {/* Main Room Info */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm text-center space-y-6">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200 shadow-sm text-center space-y-5 sm:space-y-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>You're in the Waiting Room!</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
             {quiz.title}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto leading-relaxed">
@@ -209,19 +209,19 @@ export const ParticipantLobbyPage: React.FC = () => {
         </div>
 
         {/* Specs Pill List */}
-        <div className="flex items-center justify-center gap-4 sm:gap-6 text-xs text-slate-600 font-semibold pt-2 border-t border-slate-100">
+        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-6 text-xs text-slate-600 font-semibold pt-2 border-t border-slate-100">
           <span className="flex items-center gap-1.5">
-            {quiz.mode === 'TEAM' ? <Users className="w-4 h-4 text-indigo-600" /> : <User className="w-4 h-4 text-rose-500" />}
-            {quiz.mode === 'TEAM' ? 'Team Mode (2–3 players)' : 'Solo Battle'}
+            {quiz.mode === 'TEAM' ? <Users className="w-3.5 h-3.5 text-indigo-600" /> : <User className="w-3.5 h-3.5 text-rose-500" />}
+            {quiz.mode === 'TEAM' ? 'Team Mode' : 'Solo Battle'}
           </span>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <span className="flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-slate-400" />
-            {quiz.defaultQuestionDurationSeconds}s per question
+            <Clock className="w-3.5 h-3.5 text-slate-400" />
+            {quiz.defaultQuestionDurationSeconds}s timer
           </span>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <span className="flex items-center gap-1.5">
-            <Zap className="w-4 h-4 text-amber-500" />
+            <Zap className="w-3.5 h-3.5 text-amber-500" />
             Max {quiz.maxScorePerQuestion} pts
           </span>
         </div>

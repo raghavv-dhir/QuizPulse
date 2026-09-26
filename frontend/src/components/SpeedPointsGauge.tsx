@@ -39,20 +39,20 @@ export const SpeedPointsGauge: React.FC<SpeedPointsGaugeProps> = ({
 
   if (isAnswered) {
     return (
-      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#ECFDF3] border border-[#A6F4C5] text-[#16803C] text-xs font-medium">
-        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-        <span>Answer Locked</span>
-        <span className="font-mono font-bold tabular-nums ml-1">+{scoreAwarded || 0} pts</span>
+      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold shadow-sm">
+        <Check className="w-3.5 h-3.5 stroke-[3]" />
+        <span>Locked</span>
+        <span className="font-mono font-black ml-0.5">+{scoreAwarded || 0} pts</span>
       </div>
     );
   }
 
   return (
-    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-white border border-[#E5E5E2] text-xs font-medium text-[#4A4A4A]">
-      <Zap className="w-3.5 h-3.5 text-[#1D4ED8] fill-[#1D4ED8]" />
-      <span>Speed Value:</span>
-      <span className="font-mono font-bold text-[#171717] tabular-nums">
-        {currentScorePotential} <span className="text-[10px] text-[#6B6B6B] font-normal">/ {maxScore}</span>
+    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold shadow-sm">
+      <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500 animate-pulse" />
+      <span>Speed:</span>
+      <span className="font-mono font-black tabular-nums">
+        {currentScorePotential} <span className="text-[10px] text-amber-600/70 font-normal">pts</span>
       </span>
     </div>
   );
