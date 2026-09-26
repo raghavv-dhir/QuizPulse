@@ -41,6 +41,7 @@ export const LiveQuizRoomPage: React.FC = () => {
   const [questionEndedData, setQuestionEndedData] = useState<any | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [quizFinished, setQuizFinished] = useState(false);
 
   const loadAuthoritativeState = async () => {
     try {
@@ -92,8 +93,8 @@ export const LiveQuizRoomPage: React.FC = () => {
                 currentQuestionIndex: questionIndex,
                 totalQuestions: totalQuestions,
                 currentQuestion: question,
-                serverQuestionStartTimeMs,
-                questionDurationMs: durationMs,
+                serverQuestionStartTimeMs: serverStartTimeMs || Date.now(),
+                questionDurationMs: durationMs || (question?.durationSeconds ? question.durationSeconds * 1000 : 15000),
                 alreadyAnswered: false,
                 myAnswer: undefined,
               }
@@ -124,7 +125,11 @@ export const LiveQuizRoomPage: React.FC = () => {
       } else if (event.eventType === 'QUIZ_RESUMED') {
         setIsPaused(false);
       } else if (event.eventType === 'QUIZ_COMPLETED') {
-        navigate(`/quizzes/${quizId}/results`);
+        setQuizFinished(true);
+        setQuizState((prev) => (prev ? { ...prev, status: 'COMPLETED' } : null));
+        setTimeout(() => {
+          navigate(`/quizzes/${quizId}/results`);
+        }, 3000);
       }
     },
   });
@@ -263,6 +268,7 @@ export const LiveQuizRoomPage: React.FC = () => {
                   </div>
 
                   <SpeedPointsGauge
+                    key={`speed-${currentQuestion.id}-${quizState.currentQuestionIndex}`}
                     maxScore={currentQuestion.maxScore}
                     serverStartTimeMs={serverQuestionStartTimeMs}
                     durationMs={questionDurationMs}
@@ -273,6 +279,7 @@ export const LiveQuizRoomPage: React.FC = () => {
 
                 {/* Big Countdown Timer */}
                 <CountdownTimer
+                  key={`timer-${currentQuestion.id}-${quizState.currentQuestionIndex}`}
                   serverStartTimeMs={serverQuestionStartTimeMs}
                   durationMs={questionDurationMs}
                   isPaused={isPaused}
@@ -406,17 +413,75 @@ export const LiveQuizRoomPage: React.FC = () => {
                   </div>
                 </div>
               )}
+              {/* Prompt to Show Results if final question is answered or round ended */}
+              {((quizState.currentQuestionIndex >= quizState.totalQuestions && (isAnswerLocked || !!questionEndedData)) || quizFinished || quizState.status === 'COMPLETED') && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-indigo-50 border-2 border-amber-300/80 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in">
+                  <div className="flex items-center gap-3 text-center sm:text-left">
+                    <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-sm">
+                      <Trophy className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">
+                        All Questions Completed! 🏁
+                      </h4>
+                      <p className="text-[11px] text-slate-600 font-medium">
+                        Check out the winner podium and official final standings.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate(`/quizzes/${quizId}/results`)}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
+                  >
+                    <Trophy className="w-4 h-4 fill-white" />
+                    <span>Show Results & Leaderboard</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
-            <div className="bg-white rounded-3xl p-12 text-center space-y-3 border border-slate-200 shadow-sm">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto shadow-inner">
-                <Zap className="w-6 h-6 animate-pulse" />
+            (quizFinished || quizState.status === 'COMPLETED' || quizState.currentQuestionIndex >= quizState.totalQuestions) ? (
+              <div className="bg-gradient-to-br from-indigo-900 via-indigo-950 to-purple-950 rounded-3xl p-6 sm:p-10 text-center text-white space-y-4 sm:space-y-6 shadow-2xl border-2 border-indigo-400/40 animate-in zoom-in-95">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-400/20 border-2 border-amber-400/50 flex items-center justify-center mx-auto text-amber-300 shadow-xl shadow-amber-400/10">
+                  <Trophy className="w-8 h-8 sm:w-10 sm:h-10" />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-xs font-bold border border-white/15">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    All {quizState.totalQuestions} Questions Completed!
+                  </div>
+                  <h3 className="text-xl sm:text-3xl font-black tracking-tight">
+                    You've Completed All Questions! 🎉
+                  </h3>
+                  <p className="text-xs sm:text-sm text-indigo-200/80 max-w-md mx-auto leading-relaxed">
+                    Awesome job! You answered all questions. Check the final leaderboard to see the 1st, 2nd, 3rd podium and full rankings.
+                  </p>
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <button
+                    onClick={() => navigate(`/quizzes/${quizId}/results`)}
+                    className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-orange-400 hover:from-amber-300 hover:to-orange-500 text-slate-950 font-black text-sm sm:text-base shadow-xl shadow-amber-400/30 flex items-center justify-center gap-2 transform active:scale-95 transition-all cursor-pointer"
+                  >
+                    <Trophy className="w-5 h-5 fill-slate-950" />
+                    <span>Show Results & Leaderboard</span>
+                    <ArrowRight className="w-4 h-4 stroke-[3]" />
+                  </button>
+                </div>
               </div>
-              <h3 className="text-base font-bold text-slate-900">Next Question Coming Up...</h3>
-              <p className="text-xs text-slate-500">
-                Get ready! The quiz host is about to push the next question.
-              </p>
-            </div>
+            ) : (
+              <div className="bg-white rounded-3xl p-12 text-center space-y-3 border border-slate-200 shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto shadow-inner">
+                  <Zap className="w-6 h-6 animate-pulse" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">Next Question Coming Up...</h3>
+                <p className="text-xs text-slate-500">
+                  Get ready! The quiz host is about to push the next question.
+                </p>
+              </div>
+            )
           )}
 
           {/* Team Widget if in Team Mode */}

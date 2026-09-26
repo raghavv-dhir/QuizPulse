@@ -16,6 +16,7 @@ import {
   Shield,
   ArrowRight,
 } from 'lucide-react';
+import { toGamePin } from '../utils/gamePin';
 
 export const AdminDashboardPage: React.FC = () => {
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
@@ -283,8 +284,8 @@ export const AdminDashboardPage: React.FC = () => {
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-mono font-bold">
-                      PIN: #{quiz.id}
+                    <span className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-mono font-black tracking-wide">
+                      PIN: {toGamePin(quiz.id)}
                     </span>
                     <span className="badge bg-slate-100 text-slate-700">
                       {quiz.mode === 'TEAM' ? 'Team Mode' : 'Solo Mode'}

@@ -20,12 +20,16 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   });
 
   useEffect(() => {
+    const elapsed = Date.now() - serverStartTimeMs;
+    const initialLeft = Math.max(0, durationMs - elapsed);
+    setRemainingMs(initialLeft);
+
     if (isPaused) return;
 
     const interval = setInterval(() => {
       const now = Date.now();
-      const elapsed = now - serverStartTimeMs;
-      const left = Math.max(0, durationMs - elapsed);
+      const currentElapsed = now - serverStartTimeMs;
+      const left = Math.max(0, durationMs - currentElapsed);
 
       setRemainingMs(left);
 

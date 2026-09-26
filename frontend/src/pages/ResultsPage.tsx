@@ -22,6 +22,7 @@ export const ResultsPage: React.FC = () => {
   const [results, setResults] = useState<QuizResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'leaderboard' | 'breakdown'>('leaderboard');
+  const [showAllEntries, setShowAllEntries] = useState(false);
 
   useEffect(() => {
     async function fetchResults() {
@@ -170,7 +171,7 @@ export const ResultsPage: React.FC = () => {
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              Full Standings ({leaderboard.length})
+              Leaderboard ({showAllEntries ? `All ${leaderboard.length}` : `Top ${Math.min(10, leaderboard.length)}`})
             </button>
             <button
               onClick={() => setActiveTab('breakdown')}
@@ -204,44 +205,96 @@ export const ResultsPage: React.FC = () => {
 
         {/* Tab: Leaderboard Table */}
         {activeTab === 'leaderboard' && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px]">
-                  <th className="py-3 px-4 w-16">Rank</th>
-                  <th className="py-3 px-4">Participant / Team</th>
-                  <th className="py-3 px-4 text-center">Score</th>
-                  <th className="py-3 px-4 text-center">Correct</th>
-                  <th className="py-3 px-4 text-right">Avg Response</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {leaderboard.map((entry, idx) => (
-                  <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-500">
-                      #{idx + 1}
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-900">
-                      {entry.name}
-                      {entry.memberNames && entry.memberNames.length > 0 && (
-                        <div className="text-[11px] text-slate-400 font-normal">
-                          {entry.memberNames.join(', ')}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 text-center font-mono font-black text-indigo-600">
-                      {entry.totalScore.toLocaleString()}
-                    </td>
-                    <td className="py-3.5 px-4 text-center text-emerald-600 font-bold">
-                      {entry.correctAnswers}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-mono text-slate-500">
-                      {(entry.averageResponseTimeMs / 1000).toFixed(2)}s
-                    </td>
+          <div className="space-y-4">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px]">
+                    <th className="py-3 px-4 w-16">Rank</th>
+                    <th className="py-3 px-4">Participant / Team</th>
+                    <th className="py-3 px-4 text-center">Score</th>
+                    <th className="py-3 px-4 text-center">Correct</th>
+                    <th className="py-3 px-4 text-right">Avg Response</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {(showAllEntries ? leaderboard : leaderboard.slice(0, 10)).map((entry, idx) => {
+                    const isMe =
+                      (user && user.id === entry.id) ||
+                      (user && entry.memberNames?.some((m) => m.toLowerCase().includes(user.fullName?.toLowerCase() || user.username?.toLowerCase())));
+
+                    let rankDisplay = `#${idx + 1}`;
+                    if (idx === 0) rankDisplay = '🥇 1';
+                    else if (idx === 1) rankDisplay = '🥈 2';
+                    else if (idx === 2) rankDisplay = '🥉 3';
+
+                    return (
+                      <tr
+                        key={entry.id}
+                        className={`transition-colors ${
+                          isMe ? 'bg-indigo-50/70 font-semibold' : 'hover:bg-slate-50'
+                        }`}
+                      >
+                        <td className="py-3.5 px-4 font-mono font-black text-slate-700 whitespace-nowrap">
+                          {rankDisplay}
+                        </td>
+                        <td className="py-3.5 px-4 font-bold text-slate-900">
+                          <div className="flex items-center gap-1.5">
+                            <span>{entry.name}</span>
+                            {isMe && (
+                              <span className="px-1.5 py-0.5 rounded-full bg-indigo-600 text-white text-[9px] font-black uppercase">
+                                You ⭐
+                              </span>
+                            )}
+                          </div>
+                          {entry.memberNames && entry.memberNames.length > 0 && (
+                            <div className="text-[11px] text-slate-400 font-normal">
+                              {entry.memberNames.join(', ')}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-center font-mono font-black text-indigo-600 text-xs sm:text-sm">
+                          {entry.totalScore.toLocaleString()}
+                        </td>
+                        <td className="py-3.5 px-4 text-center text-emerald-600 font-bold">
+                          {entry.correctAnswers}
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-mono text-slate-500">
+                          {(entry.averageResponseTimeMs / 1000).toFixed(2)}s
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {leaderboard.length > 10 && (
+              <div className="pt-3 text-center border-t border-slate-100">
+                <button
+                  onClick={() => setShowAllEntries(!showAllEntries)}
+                  className="btn-secondary text-xs !h-9 mx-auto"
+                >
+                  {showAllEntries
+                    ? 'Show Top 10 Only'
+                    : `View Full Standings (${leaderboard.length} participants)`}
+                </button>
+              </div>
+            )}
+
+            {!showAllEntries && myRank && myRank > 10 && (
+              <div className="p-3.5 rounded-2xl bg-indigo-50 border border-indigo-200/80 flex items-center justify-between text-xs font-bold text-indigo-950">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-mono font-black text-xs">
+                    #{myRank}
+                  </span>
+                  <span>Your Standing: {user?.fullName || user?.username} (You) ⭐</span>
+                </div>
+                <span className="font-mono text-indigo-700 font-black text-sm">
+                  {myTotalScore.toLocaleString()} pts
+                </span>
+              </div>
+            )}
           </div>
         )}
 

@@ -15,6 +15,7 @@ import {
   Play,
   Clock,
 } from 'lucide-react';
+import { toGamePin, parsePinToId } from '../utils/gamePin';
 
 export const QuizListPage: React.FC = () => {
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
@@ -41,11 +42,23 @@ export const QuizListPage: React.FC = () => {
     loadQuizzes();
   }, []);
 
+  useEffect(() => {
+    if (window.location.hash === '#explore-quizzes') {
+      setTimeout(() => {
+        const el = document.getElementById('explore-quizzes');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [loading]);
+
   const handleJoinPin = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = gamePin.trim().replace(/^#/, '');
-    if (!clean) return;
-    navigate(`/quizzes/${clean}/lobby`);
+    const quizId = parsePinToId(gamePin);
+    if (!quizId) {
+      alert('Please enter a valid Game PIN or Quiz ID');
+      return;
+    }
+    navigate(`/quizzes/${quizId}/lobby`);
   };
 
   const getStatusBadge = (status: string) => {
@@ -141,7 +154,7 @@ export const QuizListPage: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="Enter Game PIN or Quiz ID..."
+                  placeholder="Enter Game PIN (e.g. 6bc434)..."
                   value={gamePin}
                   onChange={(e) => setGamePin(e.target.value)}
                   className="w-full h-11 sm:h-12 pl-10 pr-3 sm:pl-11 sm:pr-4 bg-transparent text-slate-900 font-bold placeholder:text-slate-400 placeholder:font-normal text-xs sm:text-base outline-none"
@@ -193,7 +206,7 @@ export const QuizListPage: React.FC = () => {
       </section>
 
       {/* Main Quizzes List */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
+      <section id="explore-quizzes" className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -284,21 +297,26 @@ export const QuizListPage: React.FC = () => {
                   <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${accentGradient}`} />
 
                   <div className="space-y-3 pt-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 shrink-0">
                         {quiz.mode === 'TEAM' ? (
                           <>
                             <Users className="w-3.5 h-3.5 text-indigo-600" />
-                            Team Mode
+                            Team
                           </>
                         ) : (
                           <>
                             <Zap className="w-3.5 h-3.5 text-rose-500" />
-                            Solo Mode
+                            Solo
                           </>
                         )}
                       </span>
-                      {getStatusBadge(quiz.status)}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="px-2 py-0.5 rounded-lg bg-indigo-50 border border-indigo-200/70 font-mono font-black text-indigo-700 text-[11px] tracking-wide">
+                          PIN: {toGamePin(quiz.id)}
+                        </span>
+                        {getStatusBadge(quiz.status)}
+                      </div>
                     </div>
 
                     <div className="space-y-1">

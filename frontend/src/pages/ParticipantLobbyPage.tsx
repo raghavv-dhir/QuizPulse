@@ -18,9 +18,11 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+import { toGamePin, parsePinToId } from '../utils/gamePin';
+
 export const ParticipantLobbyPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const quizId = Number(id);
+  const quizId = parsePinToId(id) || Number(id);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -126,8 +128,10 @@ export const ParticipantLobbyPage: React.FC = () => {
     }
   };
 
+  const gamePin = toGamePin(quizId);
+
   const copyPinToClipboard = () => {
-    navigator.clipboard.writeText(`${quizId}`);
+    navigator.clipboard.writeText(gamePin);
     setCopiedPin(true);
     setTimeout(() => setCopiedPin(false), 2000);
   };
@@ -168,7 +172,7 @@ export const ParticipantLobbyPage: React.FC = () => {
           </span>
           <div className="flex items-center gap-3">
             <span className="text-3xl sm:text-5xl font-black font-mono tracking-wider">
-              #{quiz.id}
+              {gamePin}
             </span>
             <button
               onClick={copyPinToClipboard}

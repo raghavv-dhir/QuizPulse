@@ -1,23 +1,36 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Zap, Trophy, Shield, LogOut, User, Plus, Sparkles, Key, Menu, X } from 'lucide-react';
+import { parsePinToId } from '../utils/gamePin';
 
 export const Navbar: React.FC = () => {
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [pinInput, setPinInput] = useState('');
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleJoinPin = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanPin = pinInput.trim().replace(/^#/, '');
-    if (!cleanPin) return;
+    const quizId = parsePinToId(pinInput);
+    if (!quizId) return;
     setIsPinModalOpen(false);
     setIsMobileMenuOpen(false);
     setPinInput('');
-    navigate(`/quizzes/${cleanPin}/lobby`);
+    navigate(`/quizzes/${quizId}/lobby`);
+  };
+
+  const handleExploreClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsMobileMenuOpen(false);
+    const el = document.getElementById('explore-quizzes');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/#explore-quizzes');
+    }
   };
 
   const handleLogout = () => {
@@ -54,12 +67,13 @@ export const Navbar: React.FC = () => {
               <span>Enter PIN</span>
             </button>
 
-            <Link
-              to="/quizzes"
-              className="text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition"
+            <a
+              href="#explore-quizzes"
+              onClick={handleExploreClick}
+              className="text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
             >
               Explore Quizzes
-            </Link>
+            </a>
 
             {isAdmin && (
               <Link
@@ -157,14 +171,14 @@ export const Navbar: React.FC = () => {
             )}
 
             <div className="space-y-1">
-              <Link
-                to="/quizzes"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full flex items-center gap-2 p-2.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-100 transition"
+              <a
+                href="#explore-quizzes"
+                onClick={handleExploreClick}
+                className="w-full flex items-center gap-2 p-2.5 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
               >
                 <Zap className="w-4 h-4 text-indigo-600" />
                 <span>Explore Quizzes</span>
-              </Link>
+              </a>
 
               {isAdmin && (
                 <Link
@@ -220,7 +234,7 @@ export const Navbar: React.FC = () => {
                   type="text"
                   autoFocus
                   required
-                  placeholder="e.g. 1024 or 1"
+                  placeholder="e.g. 6bc434 or 7e567f"
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value)}
                   className="ui-input w-full text-center text-xl font-extrabold font-mono tracking-widest uppercase !h-14 placeholder:tracking-normal placeholder:font-normal placeholder:text-sm"

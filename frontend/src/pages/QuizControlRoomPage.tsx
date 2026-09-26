@@ -24,6 +24,7 @@ import {
   Sparkles,
   Zap,
 } from 'lucide-react';
+import { toGamePin } from '../utils/gamePin';
 
 export const QuizControlRoomPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -181,7 +182,8 @@ export const QuizControlRoomPage: React.FC = () => {
   };
 
   const copyInviteLink = () => {
-    const url = `${window.location.origin}/quizzes/${quizId}/lobby`;
+    const gamePin = toGamePin(quizId);
+    const url = `${window.location.origin}/quizzes/${gamePin}/lobby`;
     navigator.clipboard.writeText(url);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
@@ -209,7 +211,7 @@ export const QuizControlRoomPage: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-black font-mono tracking-wider border border-indigo-100">
-                PIN: #{quiz.id}
+                PIN: {toGamePin(quiz.id)}
               </span>
               <span className="badge bg-slate-100 text-slate-700">
                 {quiz.mode === 'TEAM' ? 'Team Mode' : 'Solo Mode'}
