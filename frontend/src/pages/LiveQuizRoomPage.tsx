@@ -19,6 +19,9 @@ import {
   AlertCircle,
   Pause,
   ArrowRight,
+  Trophy,
+  Zap,
+  Sparkles,
 } from 'lucide-react';
 
 export const LiveQuizRoomPage: React.FC = () => {
@@ -120,35 +123,30 @@ export const LiveQuizRoomPage: React.FC = () => {
         setIsPaused(true);
       } else if (event.eventType === 'QUIZ_RESUMED') {
         setIsPaused(false);
-      } else if (event.eventType === 'QUIZ_FINISHED') {
-        setTimeout(() => {
-          navigate(`/quizzes/${quizId}/results`);
-        }, 1500);
+      } else if (event.eventType === 'QUIZ_COMPLETED') {
+        navigate(`/quizzes/${quizId}/results`);
       }
     },
   });
 
   const handleSelectAndSubmit = async (optionId: number) => {
     if (isAnswerLocked || submitting || questionEndedData || isPaused) return;
-    if (!quizState?.currentQuestion) return;
-
-    setSelectedOptionId(optionId);
-    setSubmitting(true);
-    setErrorMessage(null);
 
     try {
-      const res = await api.quizzes.submitAnswer(
-        quizId,
-        quizState.currentQuestion.id,
-        optionId
-      );
+      setSubmitting(true);
+      setSelectedOptionId(optionId);
+      setErrorMessage(null);
 
+      const res = await api.quizzes.submitAnswer(quizId, currentQuestion!.id, optionId);
       setSubmissionResult(res);
       setIsAnswerLocked(true);
-      setLockedByUserName(res.submitterName);
+      setLockedByUserName(user?.fullName || user?.username || 'You');
       setLockedResponseTimeMs(res.responseTimeMs);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Submission error');
+    } catch (e: any) {
+      setErrorMessage(e.message || 'Failed to submit answer');
+      if (e.message?.includes('already submitted')) {
+        setIsAnswerLocked(true);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -156,135 +154,168 @@ export const LiveQuizRoomPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-3">
-        <div className="w-8 h-8 border-2 border-[#171717]/20 border-t-[#171717] rounded-full animate-spin" />
-        <span className="text-xs font-medium text-[#6B6B6B]">Loading live arena...</span>
+      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
+        <div className="w-10 h-10 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin" />
+        <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+          Syncing Live Round...
+        </span>
       </div>
     );
   }
 
   if (!quizState) {
     return (
-      <div className="max-w-md mx-auto my-16 p-6 ui-card text-center space-y-4">
-        <AlertCircle className="w-8 h-8 text-[#C62828] mx-auto" />
-        <h3 className="text-sm font-bold text-[#171717]">Competition Unavailable</h3>
-        <p className="text-xs text-[#6B6B6B]">{errorMessage || 'Unable to join arena.'}</p>
-        <button
-          onClick={() => navigate('/quizzes')}
-          className="btn-secondary text-xs"
-        >
+      <div className="max-w-md mx-auto my-12 p-8 bg-white rounded-3xl border border-slate-200 text-center space-y-4">
+        <h3 className="text-lg font-bold text-slate-900">Quiz Unavailable</h3>
+        <p className="text-xs text-slate-500">Could not retrieve live session.</p>
+        <button onClick={() => navigate('/quizzes')} className="btn-primary text-xs">
           Return to Quizzes
         </button>
       </div>
     );
   }
 
-  const { currentQuestion, currentQuestionIndex, totalQuestions, serverQuestionStartTimeMs, questionDurationMs } = quizState;
+  const { currentQuestion, serverQuestionStartTimeMs, questionDurationMs } = quizState;
+
+  // 4 iconic vibrant button themes
+  const buttonThemes = [
+    {
+      bg: 'bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 shadow-rose-500/25',
+      letterBg: 'bg-white/20 text-white',
+      shape: '▲',
+      letter: 'A',
+    },
+    {
+      bg: 'bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-sky-500/25',
+      letterBg: 'bg-white/20 text-white',
+      shape: '◆',
+      letter: 'B',
+    },
+    {
+      bg: 'bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/25',
+      letterBg: 'bg-white/20 text-white',
+      shape: '●',
+      letter: 'C',
+    },
+    {
+      bg: 'bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-emerald-500/25',
+      letterBg: 'bg-white/20 text-white',
+      shape: '■',
+      letter: 'D',
+    },
+  ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <CheatingDetector quizId={quizId} />
 
-      {/* Top Competition Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5E2]">
-        <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D4ED8] block">
-            {quizState.mode === 'TEAM' ? 'Team Competition' : 'Individual Competition'}
-          </span>
-          <h2 className="text-xl font-bold text-[#171717] tracking-tight">
-            {quizState.title}
-          </h2>
+      {/* Top Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-indigo-500/20">
+            <Zap className="w-5 h-5 fill-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-slate-900 leading-tight">
+              {quizState.title}
+            </h2>
+            <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold mt-0.5">
+              <span>{quizState.mode === 'TEAM' ? 'Team Showdown' : 'Solo Battle'}</span>
+              <span>•</span>
+              <span>Round {quizState.currentQuestionIndex || 1} of {quizState.totalQuestions || 1}</span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-semibold">
+        {/* Live Status Pill */}
+        <div className="flex items-center gap-2">
           {isPaused ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#FEFCE8] text-[#A16207] border border-[#FEF08A]">
-              <Pause className="w-3.5 h-3.5" /> Paused
+            <span className="badge bg-amber-50 text-amber-700 border border-amber-200">
+              <Pause className="w-3.5 h-3.5 fill-amber-700" />
+              Game Paused
             </span>
           ) : (
-            <span className="font-mono text-xs text-[#6B6B6B] tracking-wider uppercase">
-              Round <strong className="text-[#171717]">{currentQuestionIndex}</strong> of {totalQuestions || '?'}
+            <span className="badge bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Live Round Active
             </span>
           )}
-
-          <div className="h-4 w-[1px] bg-[#E5E5E2]"></div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-[#6B6B6B]">Score:</span>
-            <span className="font-mono font-bold text-sm text-[#171717] tabular-nums">
-              {quizState.myScore}
-            </span>
-            {quizState.myRank && (
-              <span className="text-[10px] text-[#6B6B6B] bg-[#F4F4F1] border border-[#E5E5E2] px-1.5 py-0.5 rounded font-mono">
-                #{quizState.myRank}
-              </span>
-            )}
-          </div>
         </div>
       </div>
 
-      {/* Main Grid: Question Arena (Left) & Minimal Leaderboard (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Center / Left: Question Card */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Left 2 Cols: Main Game Arena */}
         <div className="lg:col-span-2 space-y-6">
           {currentQuestion && serverQuestionStartTimeMs && questionDurationMs ? (
-            <div className="ui-card p-6 sm:p-8 space-y-6">
-              {/* Timer & Speed Value Header */}
-              <div className="space-y-4 pb-6 border-b border-[#E5E5E2]">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="w-full sm:w-2/3">
-                    <CountdownTimer
-                      serverStartTimeMs={serverQuestionStartTimeMs}
-                      durationMs={questionDurationMs}
-                      isPaused={isPaused}
-                    />
+            <div className="space-y-6">
+              {/* Question Header & Live Timing Card */}
+              <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 font-black text-xs uppercase tracking-wider border border-indigo-100">
+                      Question {currentQuestion.displayOrder}
+                    </span>
+                    <span className="text-xs text-slate-400 font-bold">
+                      Max {currentQuestion.maxScore} pts
+                    </span>
                   </div>
-                  <div>
-                    <SpeedPointsGauge
-                      maxScore={currentQuestion.maxScore}
-                      serverStartTimeMs={serverQuestionStartTimeMs}
-                      durationMs={questionDurationMs}
-                      isAnswered={isAnswerLocked}
-                      scoreAwarded={submissionResult?.scoreAwarded}
-                    />
-                  </div>
-                </div>
-              </div>
 
-              {/* Question Text */}
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B]">
-                  Question {currentQuestion.displayOrder}
-                </span>
-                <h3 className="text-xl sm:text-2xl font-bold text-[#171717] leading-tight">
-                  {currentQuestion.questionText}
-                </h3>
+                  <SpeedPointsGauge
+                    maxScore={currentQuestion.maxScore}
+                    serverStartTimeMs={serverQuestionStartTimeMs}
+                    durationMs={questionDurationMs}
+                    isAnswered={isAnswerLocked}
+                    scoreAwarded={submissionResult?.scoreAwarded}
+                  />
+                </div>
+
+                {/* Big Countdown Timer */}
+                <CountdownTimer
+                  serverStartTimeMs={serverQuestionStartTimeMs}
+                  durationMs={questionDurationMs}
+                  isPaused={isPaused}
+                />
+
+                {/* Big Bold Question Text */}
+                <div className="pt-2">
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-900 leading-snug">
+                    {currentQuestion.questionText}
+                  </h3>
+                </div>
               </div>
 
               {errorMessage && (
-                <div className="p-3 rounded-md bg-[#FEF2F2] border border-[#FECDCA] text-[#C62828] text-xs">
-                  {errorMessage}
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMessage}</span>
                 </div>
               )}
 
-              {/* 2x2 Clean Option Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {/* 4 Massive Iconic Answer Cards (Kahoot Style) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {currentQuestion.options.map((option, idx) => {
-                  const letter = String.fromCharCode(65 + idx);
+                  const theme = buttonThemes[idx % buttonThemes.length];
                   const isSelected = selectedOptionId === option.id;
                   const isCorrect = questionEndedData && questionEndedData.correctOptionId === option.id;
 
-                  let cardStyle = 'bg-white hover:bg-[#F8F8F6] border-[#E5E5E2] text-[#171717]';
+                  let customStyle = theme.bg;
+                  let ringStyle = 'shadow-lg';
 
-                  if (isSelected) {
-                    cardStyle = 'bg-[#EFF6FF] border-[#1D4ED8] text-[#1D4ED8] font-semibold';
+                  if (isAnswerLocked) {
+                    if (isSelected) {
+                      ringStyle = 'ring-4 ring-offset-2 ring-indigo-500 scale-[1.02] shadow-2xl';
+                    } else {
+                      customStyle += ' opacity-50 filter grayscale-[30%]';
+                    }
                   }
 
                   if (questionEndedData) {
                     if (isCorrect) {
-                      cardStyle = 'bg-[#ECFDF3] border-[#16803C] text-[#16803C] font-semibold';
+                      customStyle = 'bg-gradient-to-br from-emerald-500 to-green-600 ring-4 ring-offset-2 ring-emerald-500 shadow-2xl';
                     } else if (isSelected && !isCorrect) {
-                      cardStyle = 'bg-[#FEF2F2] border-[#C62828] text-[#C62828]';
+                      customStyle = 'bg-slate-700 opacity-60';
+                    } else {
+                      customStyle = 'bg-slate-800 opacity-30';
                     }
                   }
 
@@ -293,59 +324,100 @@ export const LiveQuizRoomPage: React.FC = () => {
                       key={option.id}
                       onClick={() => handleSelectAndSubmit(option.id)}
                       disabled={isAnswerLocked || submitting || !!questionEndedData || isPaused}
-                      className={`p-4 rounded-md border text-left flex items-start gap-3 transition-colors disabled:cursor-not-allowed ${cardStyle}`}
+                      className={`game-btn ${customStyle} ${ringStyle}`}
                     >
-                      <span className="w-6 h-6 rounded bg-[#F4F4F1] border border-[#E5E5E2] flex items-center justify-center font-mono font-bold text-xs text-[#171717] shrink-0">
-                        {letter}
-                      </span>
-                      <span className="text-sm pt-0.5 leading-snug flex-1">{option.optionText}</span>
-                      {isSelected && <Check className="w-4 h-4 shrink-0 mt-0.5" />}
+                      <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center font-black text-sm shrink-0 shadow-inner">
+                        <span>{theme.shape}</span>
+                      </div>
+
+                      <div className="flex-1 font-bold text-base sm:text-lg leading-snug">
+                        {option.optionText}
+                      </div>
+
+                      {isSelected && (
+                        <div className="w-8 h-8 rounded-full bg-white text-indigo-600 flex items-center justify-center shrink-0 shadow-md">
+                          <Check className="w-5 h-5 stroke-[3]" />
+                        </div>
+                      )}
+
+                      {questionEndedData && isCorrect && (
+                        <div className="w-8 h-8 rounded-full bg-white text-emerald-600 flex items-center justify-center shrink-0 shadow-md animate-bounce">
+                          <Check className="w-5 h-5 stroke-[3]" />
+                        </div>
+                      )}
                     </button>
                   );
                 })}
               </div>
 
-              {/* Answer Locked Message */}
-              {isAnswerLocked && (
-                <div className="p-3 rounded-md bg-[#F8F8F6] border border-[#E5E5E2] flex items-center justify-between text-xs text-[#171717]">
-                  <span>
-                    Answer submitted by: <strong>{lockedByUserName || 'You'}</strong>
-                  </span>
+              {/* Instant Answer Feedback Banner */}
+              {isAnswerLocked && !questionEndedData && (
+                <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200/80 flex items-center justify-between text-indigo-900 shadow-sm animate-in fade-in">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                      <Check className="w-4 h-4 stroke-[3]" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-extrabold block">
+                        Answer Locked In! ⚡
+                      </span>
+                      <span className="text-[11px] text-indigo-600">
+                        Submitted by: <strong>{lockedByUserName || 'You'}</strong>
+                      </span>
+                    </div>
+                  </div>
+
                   {lockedResponseTimeMs !== undefined && (
-                    <span className="font-mono text-[11px] text-[#6B6B6B] font-semibold tabular-nums">
-                      {(lockedResponseTimeMs / 1000).toFixed(2)}s
+                    <span className="font-mono text-xs font-black bg-white px-2.5 py-1 rounded-xl border border-indigo-200 text-indigo-700 shadow-inner">
+                      ⏱ {(lockedResponseTimeMs / 1000).toFixed(2)}s
                     </span>
                   )}
                 </div>
               )}
 
-              {/* Question Ended Reveal */}
+              {/* Question Ended Reveal Card */}
               {questionEndedData && (
-                <div className="p-4 rounded-md bg-[#F8F8F6] border border-[#E5E5E2] space-y-1.5 text-xs">
+                <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-md space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[#171717]">Question Ended</span>
-                    <span className="text-[#16803C] font-semibold">
-                      Answer: {questionEndedData.correctOptionText}
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                      Round Concluded
+                    </span>
+                    <span className="text-emerald-600 font-extrabold text-sm flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4" />
+                      Correct: {questionEndedData.correctOptionText}
                     </span>
                   </div>
-                  <div className="text-[#6B6B6B] text-[11px] flex items-center gap-4">
-                    <span>Received: {questionEndedData.totalAnswers}</span>
-                    <span>Correct: {questionEndedData.correctCount}</span>
-                    <span>Incorrect: {questionEndedData.incorrectCount}</span>
+
+                  <div className="grid grid-cols-3 gap-3 pt-2 text-center">
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase block">Total</span>
+                      <span className="text-base font-extrabold text-slate-900">{questionEndedData.totalAnswers}</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200/60">
+                      <span className="text-[10px] font-bold text-emerald-600 uppercase block">Correct</span>
+                      <span className="text-base font-extrabold text-emerald-700">{questionEndedData.correctCount}</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200/60">
+                      <span className="text-[10px] font-bold text-rose-600 uppercase block">Wrong</span>
+                      <span className="text-base font-extrabold text-rose-700">{questionEndedData.incorrectCount}</span>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <div className="ui-card p-12 text-center space-y-2">
-              <h3 className="text-sm font-bold text-[#171717]">Next Round Starting Soon</h3>
-              <p className="text-xs text-[#6B6B6B]">
-                The Quiz Master is preparing the next question.
+            <div className="bg-white rounded-3xl p-12 text-center space-y-3 border border-slate-200 shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto shadow-inner">
+                <Zap className="w-6 h-6 animate-pulse" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900">Next Question Coming Up...</h3>
+              <p className="text-xs text-slate-500">
+                Get ready! The quiz host is about to push the next question.
               </p>
             </div>
           )}
 
-          {/* Team Widget if Team Mode */}
+          {/* Team Widget if in Team Mode */}
           {quizState.mode === 'TEAM' && (
             <TeamStatusWidget
               team={quizState.myTeam}
@@ -356,49 +428,57 @@ export const LiveQuizRoomPage: React.FC = () => {
           )}
         </div>
 
-        {/* Right Col: Leaderboard */}
+        {/* Right Col: Live Standings */}
         <div className="space-y-4">
-          <div className="ui-card p-4 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-[#E5E5E2]">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#171717]">
-                Live Standings
-              </h4>
-              <span className="text-[10px] text-[#6B6B6B] font-mono">
+          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-amber-500" />
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
+                  Live Standings
+                </h4>
+              </div>
+              <span className="text-[10px] font-bold text-slate-400 font-mono">
                 {quizState.leaderboard?.length || 0} Listed
               </span>
             </div>
 
-            <div className="divide-y divide-[#E5E5E2] text-xs">
+            <div className="divide-y divide-slate-100 text-xs">
               {quizState.leaderboard && quizState.leaderboard.length > 0 ? (
-                quizState.leaderboard.map((entry) => {
+                quizState.leaderboard.map((entry, idx) => {
                   const isMe =
                     (quizState.mode === 'TEAM' && quizState.myTeam?.id === entry.id) ||
                     (quizState.mode === 'INDIVIDUAL' && user?.id === entry.id);
 
+                  let rankBadge = `${idx + 1}`;
+                  if (idx === 0) rankBadge = '🥇';
+                  if (idx === 1) rankBadge = '🥈';
+                  if (idx === 2) rankBadge = '🥉';
+
                   return (
                     <div
                       key={entry.id}
-                      className={`py-2.5 flex items-center justify-between ${
-                        isMe ? 'font-semibold text-[#1D4ED8]' : 'text-[#171717]'
+                      className={`py-3 flex items-center justify-between transition-colors ${
+                        isMe ? 'font-bold text-indigo-700 bg-indigo-50/70 -mx-3 px-3 rounded-xl' : 'text-slate-700'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <span className="font-mono text-[11px] text-[#6B6B6B] w-5">
-                          {String(entry.rank).padStart(2, '0')}
+                        <span className="text-sm font-black w-6 text-center shrink-0">
+                          {rankBadge}
                         </span>
-                        <span className="truncate">
-                          {entry.name} {isMe && '(You)'}
+                        <span className="truncate font-bold">
+                          {entry.name} {isMe && '⭐'}
                         </span>
                       </div>
-                      <span className="font-mono font-bold tabular-nums shrink-0 ml-2">
-                        {entry.totalScore.toLocaleString()}
+                      <span className="font-mono font-black tabular-nums shrink-0 ml-2 text-slate-900">
+                        {entry.totalScore.toLocaleString()} pts
                       </span>
                     </div>
                   );
                 })
               ) : (
-                <div className="py-6 text-center text-xs text-[#6B6B6B]">
-                  No scores recorded yet.
+                <div className="py-8 text-center text-xs text-slate-400 font-medium">
+                  Waiting for first points to be scored...
                 </div>
               )}
             </div>

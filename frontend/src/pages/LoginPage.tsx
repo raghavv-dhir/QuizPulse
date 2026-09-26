@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Zap, Lock } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
@@ -28,25 +28,30 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-[#171717]">Sign In</h1>
-          <p className="text-xs text-[#6B6B6B]">
-            Enter your credentials to access the competition arena.
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4 bg-gradient-to-b from-indigo-50/50 via-white to-canvas">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center mx-auto shadow-md shadow-indigo-500/20">
+            <Zap className="w-6 h-6 fill-white" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Welcome Back
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            Sign in to join live games or host your own quiz competitions.
           </p>
         </div>
 
-        <div className="ui-card p-6 sm:p-7 space-y-5">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 border border-slate-200/80 space-y-5">
           {error && (
-            <div className="p-3 rounded-md bg-[#FEF2F2] border border-[#FECDCA] text-[#C62828] text-xs">
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-[#171717] mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 Username or Email
               </label>
               <input
@@ -54,47 +59,45 @@ export const LoginPage: React.FC = () => {
                 required
                 value={usernameOrEmail}
                 onChange={(e) => setUsernameOrEmail(e.target.value)}
-                placeholder="name@example.com"
-                className="ui-input w-full"
+                placeholder="you@example.com or username"
+                className="ui-input w-full text-xs font-medium"
               />
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-[#171717]">
-                  Password
-                </label>
-              </div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Password
+              </label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="ui-input w-full"
+                className="ui-input w-full text-xs font-medium"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full !h-11 mt-1"
+              className="btn-primary w-full !h-12 text-sm shadow-md shadow-indigo-500/20"
             >
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
                   <span>Sign In</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
+                  <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-xs text-[#6B6B6B]">
+        <p className="text-center text-xs text-slate-500 font-medium">
           Don't have an account?{' '}
-          <Link to="/register" className="text-[#1D4ED8] font-semibold hover:underline">
+          <Link to="/register" className="text-indigo-600 font-bold hover:underline">
             Register here
           </Link>
         </p>

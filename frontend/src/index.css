@@ -3,77 +3,56 @@
 @tailwind utilities;
 
 :root {
-  --background: #F8F8F6;
-  --surface: #FFFFFF;
-  --foreground: #171717;
-  --muted: #6B6B6B;
-  --border: #E5E5E2;
-
-  --primary: #1D4ED8;
-  --primary-foreground: #FFFFFF;
-
-  --success: #16803C;
-  --warning: #A16207;
-  --error: #C62828;
-
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --primary: #4F46E5;
+  --border: #E2E8F0;
 }
 
 @layer base {
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.01em;
   }
 
   h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.025em;
-    font-weight: 700;
-    color: var(--foreground);
+    font-weight: 800;
   }
 }
 
 @layer components {
-  /* Minimal card system */
+  /* Modern clean card */
   .ui-card {
     background-color: #FFFFFF;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.05), 0 1px 3px -1px rgba(15, 23, 42, 0.03);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .ui-card-subtle {
-    background-color: #FBFBFA;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+  .ui-card:hover {
+    box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.08);
   }
 
   /* Form Input */
   .ui-input {
-    height: 44px;
-    padding: 0 14px;
+    height: 48px;
+    padding: 0 16px;
     background-color: #FFFFFF;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    font-size: 0.875rem;
-    color: #171717;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: #0F172A;
+    transition: all 0.15s ease;
   }
   .ui-input:focus {
     outline: none;
-    border-color: #1D4ED8;
-    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
-  }
-  .ui-input::placeholder {
-    color: #9E9E9E;
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
   }
 
   /* Primary Button */
@@ -82,52 +61,24 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    height: 40px;
-    padding: 0 16px;
-    background-color: #171717;
+    height: 44px;
+    padding: 0 20px;
+    background-color: #4F46E5;
     color: #FFFFFF;
-    border-radius: var(--radius-md);
+    border-radius: 12px;
     font-size: 0.875rem;
-    font-weight: 600;
-    border: 1px solid transparent;
-    transition: background-color 0.15s ease, transform 0.1s ease;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
   }
   .btn-primary:hover {
-    background-color: #2D2D2D;
+    background-color: #4338CA;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
   }
   .btn-primary:active {
     transform: translateY(1px);
-  }
-  .btn-primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  /* Accent Button (for competition/start) */
-  .btn-accent {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    height: 40px;
-    padding: 0 16px;
-    background-color: #1D4ED8;
-    color: #FFFFFF;
-    border-radius: var(--radius-md);
-    font-size: 0.875rem;
-    font-weight: 600;
-    border: 1px solid transparent;
-    transition: background-color 0.15s ease;
-    cursor: pointer;
-  }
-  .btn-accent:hover {
-    background-color: #1E40AF;
-  }
-  .btn-accent:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
 
   /* Secondary Button */
@@ -136,43 +87,74 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    height: 40px;
-    padding: 0 16px;
+    height: 44px;
+    padding: 0 18px;
     background-color: #FFFFFF;
-    color: #171717;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    color: #334155;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 12px;
     font-size: 0.875rem;
-    font-weight: 500;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
+    font-weight: 600;
+    transition: all 0.15s ease;
     cursor: pointer;
   }
   .btn-secondary:hover {
-    background-color: #F4F4F1;
-    border-color: #D4D4D0;
+    background-color: #F8FAFC;
+    border-color: #CBD5E1;
+    color: #0F172A;
   }
-  .btn-secondary:disabled {
-    opacity: 0.5;
+
+  /* 4 Colorful Game Answer Buttons */
+  .game-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 80px;
+    padding: 16px 20px;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-align: left;
+    color: #FFFFFF;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    user-select: none;
+  }
+  .game-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+  .game-btn:active:not(:disabled) {
+    transform: translateY(1px) scale(0.99);
+  }
+  .game-btn:disabled {
     cursor: not-allowed;
+    opacity: 0.7;
   }
-}
 
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
-}
+  .game-btn-red {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+  }
+  .game-btn-blue {
+    background: linear-gradient(135deg, #0EA5E9, #0284C7);
+  }
+  .game-btn-amber {
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+  }
+  .game-btn-green {
+    background: linear-gradient(135deg, #10B981, #059669);
+  }
 
-/* Subtle clean scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #D4D4D0;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #A8A8A4;
+  /* Badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
 }

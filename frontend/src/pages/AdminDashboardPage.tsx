@@ -10,6 +10,11 @@ import {
   X,
   FileText,
   Sparkles,
+  Zap,
+  Users,
+  Clock,
+  Shield,
+  ArrowRight,
 } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -27,8 +32,6 @@ export const AdminDashboardPage: React.FC = () => {
   const [duration, setDuration] = useState(15);
   const [maxScore, setMaxScore] = useState(1000);
   const [scoringStrategy, setScoringStrategy] = useState<ScoringStrategyType>('LINEAR');
-  const [negativeMarking, setNegativeMarking] = useState(false);
-  const [negativePoints, setNegativePoints] = useState(0);
   const [createLoading, setCreateLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,7 +56,7 @@ export const AdminDashboardPage: React.FC = () => {
       setExemplarLoading(true);
       const created = await api.admin.createQuiz({
         title: 'Global Tech & Science Speed Showdown 2026',
-        description: 'Official exemplar speed showdown testing computer science, algorithms, distributed systems, and web standards with millisecond score decay.',
+        description: 'High-energy live quiz testing computer science, algorithms, networking, and modern tech.',
         mode: 'TEAM',
         defaultQuestionDurationSeconds: 15,
         maxScorePerQuestion: 1000,
@@ -153,8 +156,8 @@ export const AdminDashboardPage: React.FC = () => {
         defaultQuestionDurationSeconds: duration,
         maxScorePerQuestion: maxScore,
         scoringStrategy,
-        negativeMarking,
-        negativePoints,
+        negativeMarking: false,
+        negativePoints: 0,
         immediateFeedback: true,
         allowReconnection: true,
       });
@@ -181,22 +184,21 @@ export const AdminDashboardPage: React.FC = () => {
   };
 
   const totalParticipants = quizzes.reduce((acc, q) => acc + q.participantCount, 0);
-  const totalTeams = quizzes.reduce((acc, q) => acc + q.teamCount, 0);
-  const activeQuiz = quizzes.find((q) => q.status === 'RUNNING' || q.status === 'QUESTION_ACTIVE');
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-10">
-      {/* Top Operations Console Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-[#E5E5E2]">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-200">
         <div className="space-y-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#1D4ED8] block">
-            Operations Console
-          </span>
-          <h1 className="text-3xl font-extrabold text-[#171717] tracking-tight">
-            Competition Management
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100">
+            <Shield className="w-3.5 h-3.5" />
+            <span>Host Controls</span>
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+            Host Dashboard
           </h1>
-          <p className="text-xs text-[#6B6B6B]">
-            Configure speed engines, orchestrate live question delivery, and monitor real-time rankings.
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            Create new quizzes, launch live game rooms, and control question rounds.
           </p>
         </div>
 
@@ -204,303 +206,244 @@ export const AdminDashboardPage: React.FC = () => {
           <button
             onClick={handleCreateExemplarQuiz}
             disabled={exemplarLoading}
-            className="btn-secondary text-xs !border-[#BFDBFE] !bg-[#EFF6FF] !text-[#1D4ED8] hover:!bg-[#DBEAFE] transition"
+            className="btn-secondary text-xs !border-indigo-200 !bg-indigo-50 !text-indigo-700 hover:!bg-indigo-100/80 transition"
           >
             {exemplarLoading ? (
-              <span className="w-3.5 h-3.5 border-2 border-[#1D4ED8]/30 border-t-[#1D4ED8] rounded-full animate-spin" />
+              <span className="w-4 h-4 border-2 border-indigo-700/30 border-t-indigo-700 rounded-full animate-spin" />
             ) : (
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-4 h-4 text-indigo-600" />
             )}
-            <span>{exemplarLoading ? 'Generating...' : '⚡ Load Exemplar Competition'}</span>
+            <span>{exemplarLoading ? 'Generating...' : '⚡ Quick Demo Quiz'}</span>
           </button>
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="btn-primary text-xs"
+            className="btn-primary text-xs shadow-md shadow-indigo-500/20"
           >
             <Plus className="w-4 h-4" />
-            <span>New Competition</span>
+            <span>+ Create a Quiz</span>
           </button>
         </div>
       </div>
 
-      {/* Metric Layout (Section 10) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-4">
-        <div className="space-y-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B] block">
+      {/* Metrics Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
             Total Quizzes
           </span>
-          <span className="text-3xl font-extrabold text-[#171717] font-mono tabular-nums">
+          <span className="text-3xl font-black text-slate-900 font-mono">
             {quizzes.length}
           </span>
         </div>
 
-        <div className="space-y-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B] block">
-            Total Participants
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            Total Players
           </span>
-          <span className="text-3xl font-extrabold text-[#171717] font-mono tabular-nums">
+          <span className="text-3xl font-black text-slate-900 font-mono">
             {totalParticipants}
-          </span>
-        </div>
-
-        <div className="space-y-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B] block">
-            Registered Teams
-          </span>
-          <span className="text-3xl font-extrabold text-[#171717] font-mono tabular-nums">
-            {totalTeams}
-          </span>
-        </div>
-
-        <div className="space-y-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B] block">
-            Active Session
-          </span>
-          <span className="text-sm font-bold text-[#171717] truncate block mt-2">
-            {activeQuiz ? activeQuiz.title : 'None in progress'}
           </span>
         </div>
       </div>
 
-      {/* Competitions Table */}
+      {/* Quizzes List */}
       <div className="space-y-4">
-        <h2 className="text-base font-bold text-[#171717]">All Competitions</h2>
+        <h2 className="text-lg font-black text-slate-900">Your Quizzes</h2>
 
         {loading ? (
-          <div className="ui-card p-12 text-center text-xs text-[#6B6B6B]">Loading console data...</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="ui-card p-6 h-48 animate-pulse bg-white" />
+            ))}
+          </div>
         ) : quizzes.length === 0 ? (
-          <div className="ui-card p-12 text-center space-y-3">
-            <FileText className="w-8 h-8 text-[#9E9E9E] mx-auto" />
-            <h3 className="text-sm font-semibold text-[#171717]">No Competitions Configured</h3>
-            <p className="text-xs text-[#6B6B6B]">Create your first competition to launch a live room.</p>
+          <div className="bg-white rounded-3xl p-12 text-center space-y-4 border border-slate-200 max-w-md mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto shadow-inner">
+              <Zap className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900">No Quizzes Created Yet</h3>
+            <p className="text-xs text-slate-500">
+              Generate a ready-to-run demo quiz with 1 click, or create a custom one from scratch.
+            </p>
             <button
-              onClick={() => setIsModalOpen(true)}
-              className="btn-primary text-xs"
+              onClick={handleCreateExemplarQuiz}
+              className="btn-primary text-xs !h-10 mx-auto"
             >
-              Create Competition
+              <Sparkles className="w-4 h-4" />
+              <span>Generate Quick Demo Quiz</span>
             </button>
           </div>
         ) : (
-          <div className="ui-card overflow-hidden">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-[#E5E5E2] bg-[#F8F8F6] text-[#6B6B6B] font-semibold uppercase tracking-wider text-[10px]">
-                  <th className="py-3 px-4">Title</th>
-                  <th className="py-3 px-4">Mode</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Questions</th>
-                  <th className="py-3 px-4">Teams</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E5E5E2]">
-                {quizzes.map((quiz) => (
-                  <tr key={quiz.id} className="hover:bg-[#FBFBFA] transition">
-                    <td className="py-3.5 px-4 font-semibold text-[#171717]">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {quizzes.map((quiz) => (
+              <div
+                key={quiz.id}
+                className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-mono font-bold">
+                      PIN: #{quiz.id}
+                    </span>
+                    <span className="badge bg-slate-100 text-slate-700">
+                      {quiz.mode === 'TEAM' ? 'Team Mode' : 'Solo Mode'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-black text-slate-900 leading-snug">
                       {quiz.title}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#6B6B6B]">
-                      {quiz.mode}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1.5 font-medium text-[11px] text-[#171717]">
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            quiz.status === 'RUNNING' || quiz.status === 'QUESTION_ACTIVE'
-                              ? 'bg-[#16803C]'
-                              : quiz.status === 'LOBBY'
-                              ? 'bg-[#A16207]'
-                              : 'bg-[#9E9E9E]'
-                          }`}
-                        />
-                        {quiz.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-[#171717]">
-                      {quiz.questionCount}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-[#171717]">
-                      {quiz.mode === 'TEAM' ? quiz.teamCount : '—'}
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          to={`/admin/quizzes/${quiz.id}/control`}
-                          className="btn-primary text-xs !h-8 !px-3"
-                        >
-                          <Play className="w-3 h-3 fill-white" />
-                          <span>Console</span>
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteQuiz(quiz.id)}
-                          className="p-1.5 text-[#6B6B6B] hover:text-[#C62828] transition rounded"
-                          title="Delete Competition"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </h3>
+                    <p className="text-xs text-slate-500 line-clamp-2">
+                      {quiz.description || 'Live speed-based competition.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
+                    <span>{quiz.questionCount} Questions</span>
+                    <span>{quiz.participantCount} Players</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Link
+                      to={`/admin/quizzes/${quiz.id}/control`}
+                      className="btn-primary flex-1 text-xs justify-center !h-10"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-white" />
+                      <span>Host Control Room</span>
+                    </Link>
+
+                    <button
+                      onClick={() => handleDeleteQuiz(quiz.id)}
+                      title="Delete Quiz"
+                      className="p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Clean Create Modal */}
+      {/* Simple Create Quiz Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
-          <div className="ui-card p-6 sm:p-7 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto shadow-modal">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E5E5E2]">
-              <h3 className="text-base font-bold text-[#171717]">Configure Competition</h3>
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-100 space-y-6 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div>
+                <h3 className="text-xl font-black text-slate-900">Create New Quiz</h3>
+                <p className="text-xs text-slate-500">Configure your live competition room</p>
+              </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-[#6B6B6B] hover:text-[#171717] p-1"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             {error && (
-              <div className="p-3 rounded-md bg-[#FEF2F2] border border-[#FECDCA] text-[#C62828] text-xs">
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleCreateQuiz} className="space-y-3.5">
+            <form onSubmit={handleCreateQuiz} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#171717] mb-1">
-                  Competition Name
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Quiz Title *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. National Inter-College Quiz 2026"
+                  placeholder="e.g. Science Trivia Showdown 2026"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="ui-input w-full"
+                  className="ui-input w-full text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#171717] mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   Description
                 </label>
-                <textarea
-                  rows={2}
-                  placeholder="Competition scope, eligibility, and rules..."
+                <input
+                  type="text"
+                  placeholder="e.g. 5 rounds of high-speed science questions"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="ui-input w-full !h-20 py-2"
+                  className="ui-input w-full text-xs"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#171717] mb-1">
-                    Mode
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Game Mode
                   </label>
-                  <select
-                    value={mode}
-                    onChange={(e) => setMode(e.target.value as QuizMode)}
-                    className="ui-input w-full"
-                  >
-                    <option value="TEAM">Team Mode (Up to 100 Teams)</option>
-                    <option value="INDIVIDUAL">Individual Mode</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setMode('TEAM')}
+                      className={`p-2 rounded-xl text-xs font-bold border transition ${
+                        mode === 'TEAM'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      Team
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMode('INDIVIDUAL')}
+                      className={`p-2 rounded-xl text-xs font-bold border transition ${
+                        mode === 'INDIVIDUAL'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      Solo
+                    </button>
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#171717] mb-1">
-                    Scoring Strategy
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Question Duration
                   </label>
                   <select
-                    value={scoringStrategy}
-                    onChange={(e) => setScoringStrategy(e.target.value as ScoringStrategyType)}
-                    className="ui-input w-full"
-                  >
-                    <option value="LINEAR">Linear Speed Scoring</option>
-                    <option value="FIXED_BUCKET">Fixed Bucket Scoring</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#171717] mb-1">
-                    Question Duration (sec)
-                  </label>
-                  <input
-                    type="number"
-                    min={5}
-                    max={120}
                     value={duration}
                     onChange={(e) => setDuration(Number(e.target.value))}
-                    className="ui-input w-full font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#171717] mb-1">
-                    Max Score / Question
-                  </label>
-                  <input
-                    type="number"
-                    min={100}
-                    max={5000}
-                    step={100}
-                    value={maxScore}
-                    onChange={(e) => setMaxScore(Number(e.target.value))}
-                    className="ui-input w-full font-mono"
-                  />
+                    className="ui-input w-full text-xs"
+                  >
+                    <option value={10}>10 Seconds (Ultra-Fast)</option>
+                    <option value={15}>15 Seconds (Standard)</option>
+                    <option value={20}>20 Seconds</option>
+                    <option value={30}>30 Seconds (Relaxed)</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="negMark"
-                  checked={negativeMarking}
-                  onChange={(e) => setNegativeMarking(e.target.checked)}
-                  className="rounded border-[#E5E5E2] text-[#1D4ED8] focus:ring-0"
-                />
-                <label htmlFor="negMark" className="text-xs font-medium text-[#171717]">
-                  Enable Negative Marking
-                </label>
-              </div>
-
-              {negativeMarking && (
-                <div>
-                  <label className="block text-xs font-semibold text-[#171717] mb-1">
-                    Negative Penalty
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={1000}
-                    value={negativePoints}
-                    onChange={(e) => setNegativePoints(Number(e.target.value))}
-                    className="ui-input w-full font-mono"
-                  />
-                </div>
-              )}
-
-              <div className="pt-3 border-t border-[#E5E5E2] flex items-center justify-end gap-2.5">
+              <div className="pt-4 border-t border-slate-100 flex gap-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="btn-secondary text-xs"
+                  className="btn-secondary flex-1"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createLoading}
-                  className="btn-primary text-xs"
+                  className="btn-primary flex-1"
                 >
-                  {createLoading ? 'Saving...' : 'Create Competition'}
+                  {createLoading ? 'Creating...' : 'Create & Add Questions ➔'}
                 </button>
               </div>
             </form>

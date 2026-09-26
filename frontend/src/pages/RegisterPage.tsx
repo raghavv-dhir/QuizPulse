@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowRight, User, Shield } from 'lucide-react';
+import { ArrowRight, User, Shield, Sparkles, Zap } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -31,25 +31,30 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-[#171717]">Create Account</h1>
-          <p className="text-xs text-[#6B6B6B]">
-            Join as a team participant or competition quiz master.
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4 bg-gradient-to-b from-indigo-50/50 via-white to-canvas">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center mx-auto shadow-md shadow-indigo-500/20">
+            <Zap className="w-6 h-6 fill-white" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Create Free Account
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium">
+            Join competitions as a player or host your own live quizzes.
           </p>
         </div>
 
-        <div className="ui-card p-6 sm:p-7 space-y-4">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 border border-slate-200/80 space-y-5">
           {error && (
-            <div className="p-3 rounded-md bg-[#FEF2F2] border border-[#FECDCA] text-[#C62828] text-xs">
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-3.5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-[#171717] mb-1">
+              <label className="block text-xs font-bold text-slate-700 mb-1">
                 Full Name
               </label>
               <input
@@ -57,42 +62,44 @@ export const RegisterPage: React.FC = () => {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Eleanor Vance"
-                className="ui-input w-full"
+                placeholder="Alex Morgan"
+                className="ui-input w-full text-xs font-medium"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-[#171717] mb-1">
-                Username
-              </label>
-              <input
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="eleanor24"
-                className="ui-input w-full"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="alex24"
+                  className="ui-input w-full text-xs font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="alex@example.com"
+                  className="ui-input w-full text-xs font-medium"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#171717] mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="eleanor@example.com"
-                className="ui-input w-full"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-[#171717] mb-1">
-                Password
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Password (min 6 chars)
               </label>
               <input
                 type="password"
@@ -101,38 +108,39 @@ export const RegisterPage: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="ui-input w-full"
+                className="ui-input w-full text-xs font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#171717] mb-1.5">
-                Role
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Account Type
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setRole('ROLE_PARTICIPANT')}
-                  className={`py-2 px-3 rounded-md text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
+                  className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition ${
                     role === 'ROLE_PARTICIPANT'
-                      ? 'bg-[#171717] text-white border-[#171717]'
-                      : 'bg-white text-[#4A4A4A] border-[#E5E5E2] hover:bg-[#F8F8F6]'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
                   <User className="w-3.5 h-3.5" />
-                  <span>Participant</span>
+                  <span>Player</span>
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setRole('ROLE_ADMIN')}
-                  className={`py-2 px-3 rounded-md text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
+                  className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition ${
                     role === 'ROLE_ADMIN'
-                      ? 'bg-[#171717] text-white border-[#171717]'
-                      : 'bg-white text-[#4A4A4A] border-[#E5E5E2] hover:bg-[#F8F8F6]'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
                   <Shield className="w-3.5 h-3.5" />
-                  <span>Quiz Master</span>
+                  <span>Host / Admin</span>
                 </button>
               </div>
             </div>
@@ -140,23 +148,23 @@ export const RegisterPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full !h-11 mt-2"
+              className="btn-primary w-full !h-12 text-sm shadow-md shadow-indigo-500/20 mt-2"
             >
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
                   <span>Create Account</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
+                  <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-xs text-[#6B6B6B]">
+        <p className="text-center text-xs text-slate-500 font-medium">
           Already have an account?{' '}
-          <Link to="/login" className="text-[#1D4ED8] font-semibold hover:underline">
+          <Link to="/login" className="text-indigo-600 font-bold hover:underline">
             Sign in
           </Link>
         </p>
