@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowRight, User, Shield, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, User, Zap } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<'ROLE_PARTICIPANT' | 'ROLE_ADMIN'>('ROLE_PARTICIPANT');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +20,7 @@ export const RegisterPage: React.FC = () => {
     setLoading(true);
 
     try {
-      await register({ username, email, password, fullName, role });
+      await register({ username, email, password, fullName, role: 'ROLE_PARTICIPANT' });
       navigate('/quizzes');
     } catch (err: any) {
       setError(err.message || 'Registration failed.');
@@ -41,7 +40,7 @@ export const RegisterPage: React.FC = () => {
             Create Free Account
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Join competitions as a player or host your own live quizzes.
+            Join competitions, enter live game PINs, and battle on the leaderboards.
           </p>
         </div>
 
@@ -112,38 +111,7 @@ export const RegisterPage: React.FC = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Account Type
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRole('ROLE_PARTICIPANT')}
-                  className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition ${
-                    role === 'ROLE_PARTICIPANT'
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>Player</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setRole('ROLE_ADMIN')}
-                  className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition ${
-                    role === 'ROLE_ADMIN'
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>Host / Admin</span>
-                </button>
-              </div>
-            </div>
+            {/* Hidden / Default Role: Automatically Player */}
 
             <button
               type="submit"

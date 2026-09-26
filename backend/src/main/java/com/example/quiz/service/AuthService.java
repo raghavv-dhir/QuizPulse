@@ -38,7 +38,8 @@ public class AuthService {
             throw new BadRequestException("Email is already in use");
         }
 
-        Role role = request.getRole() != null ? request.getRole() : Role.ROLE_PARTICIPANT;
+        // All new members automatically registered as players; admins are assigned via Admin Panel
+        Role role = Role.ROLE_PARTICIPANT;
         if (userRepository.count() == 0) {
             role = Role.ROLE_ADMIN;
             log.info("First registered user detected: granting ROLE_ADMIN to {}", request.getUsername());
