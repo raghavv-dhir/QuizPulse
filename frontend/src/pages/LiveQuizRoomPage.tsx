@@ -361,14 +361,16 @@ export const LiveQuizRoomPage: React.FC = () => {
 
               {/* Instant Answer Feedback Banner */}
               {isAnswerLocked && !questionEndedData && (
-                <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200/80 flex items-center justify-between text-indigo-900 shadow-sm animate-in fade-in">
+                <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-indigo-900 shadow-sm animate-in fade-in">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center shrink-0">
                       <Check className="w-4 h-4 stroke-[3]" />
                     </div>
                     <div>
                       <span className="text-xs font-extrabold block">
-                        Answer Locked In! ⚡
+                        {quizState.currentQuestionIndex >= quizState.totalQuestions
+                          ? 'Final Answer Locked In! 🎯'
+                          : 'Answer Locked In! ⚡'}
                       </span>
                       <span className="text-[11px] text-indigo-600">
                         Submitted by: <strong>{lockedByUserName || 'You'}</strong>
@@ -376,11 +378,24 @@ export const LiveQuizRoomPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {lockedResponseTimeMs !== undefined && (
-                    <span className="font-mono text-xs font-black bg-white px-2.5 py-1 rounded-xl border border-indigo-200 text-indigo-700 shadow-inner">
-                      ⏱ {(lockedResponseTimeMs / 1000).toFixed(2)}s
-                    </span>
-                  )}
+                  <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto justify-end">
+                    {lockedResponseTimeMs !== undefined && (
+                      <span className="font-mono text-xs font-black bg-white px-2.5 py-1 rounded-xl border border-indigo-200 text-indigo-700 shadow-inner">
+                        ⏱ {(lockedResponseTimeMs / 1000).toFixed(2)}s
+                      </span>
+                    )}
+
+                    {quizState.currentQuestionIndex >= quizState.totalQuestions && (
+                      <button
+                        onClick={() => navigate(`/quizzes/${quizId}/results`)}
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-black text-xs shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
+                      >
+                        <Trophy className="w-4 h-4 fill-white" />
+                        <span>Submit and see results</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -422,6 +437,7 @@ export const LiveQuizRoomPage: React.FC = () => {
                   </div>
                 </div>
               )}
+
               {/* Prompt to Show Results if final question is answered or round ended */}
               {((quizState.currentQuestionIndex >= quizState.totalQuestions && (isAnswerLocked || !!questionEndedData)) || quizFinished || quizState.status === 'COMPLETED') && (
                 <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-indigo-50 border-2 border-amber-300/80 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in">
@@ -440,10 +456,10 @@ export const LiveQuizRoomPage: React.FC = () => {
                   </div>
                   <button
                     onClick={() => navigate(`/quizzes/${quizId}/results`)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs sm:text-sm shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
                   >
                     <Trophy className="w-4 h-4 fill-white" />
-                    <span>Show Results & Leaderboard</span>
+                    <span>Submit and see results</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -475,7 +491,7 @@ export const LiveQuizRoomPage: React.FC = () => {
                     className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-orange-400 hover:from-amber-300 hover:to-orange-500 text-slate-950 font-black text-sm sm:text-base shadow-xl shadow-amber-400/30 flex items-center justify-center gap-2 transform active:scale-95 transition-all cursor-pointer"
                   >
                     <Trophy className="w-5 h-5 fill-slate-950" />
-                    <span>Show Results & Leaderboard</span>
+                    <span>Submit and see results</span>
                     <ArrowRight className="w-4 h-4 stroke-[3]" />
                   </button>
                 </div>
