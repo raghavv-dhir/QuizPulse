@@ -1,0 +1,17 @@
+package com.example.quiz.websocket.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class QuizEventMessage {
+    private String eventType;
+    private Long quizId;
+    private Long timestamp;
+    private Object payload;
+}
