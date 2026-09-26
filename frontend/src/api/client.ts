@@ -10,6 +10,8 @@ import {
   Team,
   User,
   AnswerResult,
+  UserAdminDto,
+  UserStatsDto,
 } from '../types/quiz';
 
 const RENDER_PROD_URL = 'https://quizpulse-backend-m0wk.onrender.com';
@@ -116,6 +118,7 @@ export const api = {
     list: () => request<QuizSummary[]>('/quizzes'),
     get: (id: number) => request<QuizDetail>(`/quizzes/${id}`),
     join: (id: number) => request<string>(`/quizzes/${id}/join`, { method: 'POST' }),
+    leave: (id: number) => request<string>(`/quizzes/${id}/leave`, { method: 'POST' }),
     getState: (id: number) => request<QuizState>(`/quizzes/${id}/state`),
     submitAnswer: (quizId: number, questionId: number, selectedOptionId: number) =>
       request<AnswerResult>(`/quizzes/${quizId}/questions/${questionId}/answer`, {
@@ -132,6 +135,24 @@ export const api = {
   },
 
   admin: {
+    users: {
+      list: () => request<UserAdminDto[]>('/admin/users'),
+      getStats: () => request<UserStatsDto>('/admin/users/stats'),
+      create: (payload: any) =>
+        request<UserAdminDto>('/admin/users', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        }),
+      update: (id: number, payload: any) =>
+        request<UserAdminDto>(`/admin/users/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload),
+        }),
+      delete: (id: number) =>
+        request<string>(`/admin/users/${id}`, {
+          method: 'DELETE',
+        }),
+    },
     createQuiz: (payload: any) =>
       request<QuizDetail>('/admin/quizzes', {
         method: 'POST',

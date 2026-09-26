@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Share2,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
 
 import { toGamePin, parsePinToId } from '../utils/gamePin';
@@ -37,12 +38,15 @@ export const ParticipantLobbyPage: React.FC = () => {
   const [teamActionLoading, setTeamActionLoading] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedPin, setCopiedPin] = useState(false);
+  const [livePlayerCount, setLivePlayerCount] = useState<number>(1);
+  const [leaving, setLeaving] = useState(false);
 
   const loadData = async () => {
     try {
       setLoading(true);
       const quizData = await api.quizzes.get(quizId);
       setQuiz(quizData);
+      setLivePlayerCount(quizData.participantCount || 1);
 
       await api.quizzes.join(quizId);
 
@@ -75,6 +79,10 @@ export const ParticipantLobbyPage: React.FC = () => {
     onEvent: (event: QuizEventMessage) => {
       if (event.eventType === 'QUIZ_STARTED' || event.eventType === 'QUESTION_STARTED') {
         navigate(`/quizzes/${quizId}/live`);
+      } else if (event.eventType === 'PARTICIPANT_JOINED' || event.eventType === 'PARTICIPANT_LEFT') {
+        if (event.payload?.participantCount !== undefined) {
+          setLivePlayerCount(event.payload.participantCount);
+        }
       } else if (event.eventType === 'TEAM_CREATED' || event.eventType === 'TEAM_MEMBER_JOINED') {
         if (quiz?.mode === 'TEAM') {
           api.teams.list(quizId).then((teams) => {
@@ -134,6 +142,18 @@ export const ParticipantLobbyPage: React.FC = () => {
     navigator.clipboard.writeText(gamePin);
     setCopiedPin(true);
     setTimeout(() => setCopiedPin(false), 2000);
+  };
+
+  const handleLeaveLobby = async () => {
+    if (!confirm('Leave this waiting room? You can re-join anytime before the quiz starts.')) return;
+    try {
+      setLeaving(true);
+      await api.quizzes.leave(quizId);
+    } catch (e) {
+      console.warn('Failed to leave waiting room', e);
+    } finally {
+      navigate('/quizzes');
+    }
   };
 
   if (loading) {
@@ -243,6 +263,26 @@ export const ParticipantLobbyPage: React.FC = () => {
           <p className="text-xs text-indigo-700/80">
             Keep this tab open! As soon as the host hits Start, your screen will transition automatically into Question 1.
           </p>
+        </div>
+
+        {/* Live Lobby Status & Leave Button */}
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-bold">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-emerald-500 -ml-3" />
+            <span>
+              {livePlayerCount} {livePlayerCount === 1 ? 'Player' : 'Players'} currently in room
+            </span>
+          </div>
+
+          <button
+            onClick={handleLeaveLobby}
+            disabled={leaving}
+            className="w-full sm:w-auto px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100/80 text-rose-700 font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5 text-rose-600" />
+            <span>{leaving ? 'Leaving Lobby...' : 'Leave Waiting Room'}</span>
+          </button>
         </div>
       </div>
 

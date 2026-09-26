@@ -6,6 +6,7 @@ import com.example.quiz.dto.quiz.QuizSummaryDto;
 import com.example.quiz.dto.quiz.UpdateQuizRequest;
 import com.example.quiz.entity.Quiz;
 import com.example.quiz.entity.QuizParticipant;
+import com.example.quiz.entity.Team;
 import com.example.quiz.entity.User;
 import com.example.quiz.entity.enums.QuizMode;
 import com.example.quiz.entity.enums.QuizStatus;
@@ -15,14 +16,17 @@ import com.example.quiz.exception.ResourceNotFoundException;
 import com.example.quiz.repository.QuestionRepository;
 import com.example.quiz.repository.QuizParticipantRepository;
 import com.example.quiz.repository.QuizRepository;
+import com.example.quiz.repository.TeamMemberRepository;
 import com.example.quiz.repository.TeamRepository;
 import com.example.quiz.repository.UserRepository;
+import com.example.quiz.websocket.QuizWebSocketService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,9 +38,11 @@ public class QuizService {
     private final UserRepository userRepository;
     private final QuizParticipantRepository participantRepository;
     private final TeamRepository teamRepository;
+    private final TeamMemberRepository teamMemberRepository;
     private final QuestionRepository questionRepository;
     private final QuestionService questionService;
     private final TeamService teamService;
+    private final QuizWebSocketService webSocketService;
 
     @Transactional
     public QuizDetailDto createQuiz(CreateQuizRequest request, Long userId) {
@@ -132,6 +138,41 @@ public class QuizService {
             participantRepository.save(participant);
             log.info("Registered user {} to quiz {}", user.getUsername(), quiz.getTitle());
         }
+
+        int count = (int) participantRepository.countByQuizId(quizId);
+        webSocketService.broadcastQuizEvent(quizId, "PARTICIPANT_JOINED", Map.of(
+                "participantCount", count,
+                "userId", userId,
+                "username", user.getUsername(),
+                "fullName", user.getFullName()
+        ));
+    }
+
+    @Transactional
+    public void leaveQuiz(Long quizId, Long userId) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz not found: " + quizId));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        // Remove from team if member
+        List<Team> quizTeams = teamRepository.findByQuizIdOrderByNameAsc(quizId);
+        for (Team t : quizTeams) {
+            if (teamMemberRepository.existsByTeamIdAndUserId(t.getId(), userId)) {
+                teamMemberRepository.deleteByTeamIdAndUserId(t.getId(), userId);
+            }
+        }
+
+        // Remove from participants
+        participantRepository.deleteByQuizIdAndUserId(quizId, userId);
+        log.info("User {} left quiz {}", user.getUsername(), quiz.getTitle());
+
+        int count = (int) participantRepository.countByQuizId(quizId);
+        webSocketService.broadcastQuizEvent(quizId, "PARTICIPANT_LEFT", Map.of(
+                "participantCount", count,
+                "userId", userId,
+                "username", user.getUsername()
+        ));
     }
 
     public QuizSummaryDto mapToSummaryDto(Quiz quiz) {

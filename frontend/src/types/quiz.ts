@@ -23,6 +23,22 @@ export interface User {
   role: Role;
 }
 
+export interface UserAdminDto {
+  id: number;
+  username: string;
+  email: string;
+  fullName: string;
+  role: Role;
+  createdAt: string;
+}
+
+export interface UserStatsDto {
+  totalUsers: number;
+  totalAdmins: number;
+  totalParticipants: number;
+  totalQuizzes: number;
+}
+
 export interface AuthResponse {
   token: string;
   tokenType: string;

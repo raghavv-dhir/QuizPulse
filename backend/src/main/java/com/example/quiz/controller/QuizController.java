@@ -59,6 +59,15 @@ public class QuizController {
         return ResponseEntity.ok(ApiResponse.success("Successfully registered for the quiz", null));
     }
 
+    @PostMapping("/{id}/leave")
+    @Operation(summary = "Leave the quiz waiting room / lobby")
+    public ResponseEntity<ApiResponse<String>> leaveQuiz(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        quizService.leaveQuiz(id, principal.getId());
+        return ResponseEntity.ok(ApiResponse.success("Successfully left the quiz", null));
+    }
+
     @GetMapping("/{id}/state")
     @Operation(summary = "Get the authoritative state for reconnection (question, elapsed/remaining time, answer status)")
     public ResponseEntity<ApiResponse<QuizStateDto>> getQuizState(

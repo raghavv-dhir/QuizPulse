@@ -107,7 +107,11 @@ export const QuizControlRoomPage: React.FC = () => {
         loadData();
       } else if (event.eventType === 'LEADERBOARD_UPDATED') {
         setLeaderboard(event.payload);
-      } else if (event.eventType === 'PARTICIPANT_JOINED' || event.eventType === 'TEAM_CREATED') {
+      } else if (
+        event.eventType === 'PARTICIPANT_JOINED' ||
+        event.eventType === 'PARTICIPANT_LEFT' ||
+        event.eventType === 'TEAM_CREATED'
+      ) {
         loadData();
       }
     },
