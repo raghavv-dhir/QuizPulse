@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 import { toGamePin, parsePinToId } from '../utils/gamePin';
+import { TeamPromptModal } from '../components/TeamPromptModal';
 
 export const ParticipantLobbyPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +34,7 @@ export const ParticipantLobbyPage: React.FC = () => {
 
   // Team state
   const [userTeam, setUserTeam] = useState<Team | null>(null);
+  const [showTeamPrompt, setShowTeamPrompt] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [teamCode, setTeamCode] = useState('');
   const [teamActionLoading, setTeamActionLoading] = useState(false);
@@ -48,8 +50,6 @@ export const ParticipantLobbyPage: React.FC = () => {
       setQuiz(quizData);
       setLivePlayerCount(quizData.participantCount || 1);
 
-      await api.quizzes.join(quizId);
-
       if (quizData.status === 'RUNNING' || quizData.status === 'QUESTION_ACTIVE') {
         navigate(`/quizzes/${quizId}/live`);
         return;
@@ -60,7 +60,13 @@ export const ParticipantLobbyPage: React.FC = () => {
         const myTeam = teams.find((t) => t.members?.some((m) => m.userId === user?.id));
         if (myTeam) {
           setUserTeam(myTeam);
+          await api.quizzes.join(quizId);
+        } else {
+          // Participant joining a team-based quiz must enter team name first
+          setShowTeamPrompt(true);
         }
+      } else {
+        await api.quizzes.join(quizId);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to enter lobby');
@@ -94,6 +100,24 @@ export const ParticipantLobbyPage: React.FC = () => {
     },
   });
 
+  const handleTeamSuccess = async (team: Team) => {
+    setUserTeam(team);
+    setShowTeamPrompt(false);
+    try {
+      await api.quizzes.join(quizId);
+      const updatedQuiz = await api.quizzes.get(quizId);
+      if (updatedQuiz?.participantCount) {
+        setLivePlayerCount(updatedQuiz.participantCount);
+      }
+    } catch (e) {
+      console.warn('Failed to register participant after team selection', e);
+    }
+  };
+
+  const handlePromptCancel = () => {
+    navigate('/quizzes');
+  };
+
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!teamName.trim()) return;
@@ -104,6 +128,8 @@ export const ParticipantLobbyPage: React.FC = () => {
       const team = await api.teams.create(quizId, teamName.trim());
       setUserTeam(team);
       setTeamName('');
+      setShowTeamPrompt(false);
+      await api.quizzes.join(quizId);
     } catch (err: any) {
       setError(err.message || 'Failed to create team');
     } finally {
@@ -121,6 +147,8 @@ export const ParticipantLobbyPage: React.FC = () => {
       const team = await api.teams.joinByCode(quizId, teamCode.trim().toUpperCase());
       setUserTeam(team);
       setTeamCode('');
+      setShowTeamPrompt(false);
+      await api.quizzes.join(quizId);
     } catch (err: any) {
       setError(err.message || 'Failed to join team');
     } finally {
@@ -250,20 +278,43 @@ export const ParticipantLobbyPage: React.FC = () => {
           </span>
         </div>
 
-        {/* Waiting Wave Animation */}
-        <div className="p-6 rounded-2xl bg-indigo-50/60 border border-indigo-100 space-y-2">
-          <div className="flex items-center justify-center gap-1.5 py-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce" style={{ animationDelay: '0ms' }} />
-            <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce" style={{ animationDelay: '150ms' }} />
-            <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+        {/* Waiting Wave Animation or Team Prompt Alert */}
+        {quiz.mode === 'TEAM' && !userTeam ? (
+          <div className="p-6 rounded-2xl bg-amber-50/90 border border-amber-200 shadow-sm space-y-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto shadow-inner">
+              <Users className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-black text-amber-950">
+                Team Name Required Before Starting
+              </h4>
+              <p className="text-xs text-amber-800/80 max-w-md mx-auto leading-relaxed">
+                This is a team-based quiz! You must enter your team name or join with an invite code before the host starts the game.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowTeamPrompt(true)}
+              className="btn-primary text-xs !h-10 mx-auto shadow-md shadow-indigo-500/20"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Enter Team Name First</span>
+            </button>
           </div>
-          <h4 className="text-sm font-extrabold text-indigo-950">
-            Waiting for Quiz Host to launch the game...
-          </h4>
-          <p className="text-xs text-indigo-700/80">
-            Keep this tab open! As soon as the host hits Start, your screen will transition automatically into Question 1.
-          </p>
-        </div>
+        ) : (
+          <div className="p-6 rounded-2xl bg-indigo-50/60 border border-indigo-100 space-y-2">
+            <div className="flex items-center justify-center gap-1.5 py-1">
+              <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+            <h4 className="text-sm font-extrabold text-indigo-950">
+              Waiting for Quiz Host to launch the game...
+            </h4>
+            <p className="text-xs text-indigo-700/80">
+              Keep this tab open! As soon as the host hits Start, your screen will transition automatically into Question 1.
+            </p>
+          </div>
+        )}
 
         {/* Live Lobby Status & Leave Button */}
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
@@ -403,6 +454,18 @@ export const ParticipantLobbyPage: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* Mandatory Team Registration Prompt for Team-Based Quizzes */}
+      {quiz.mode === 'TEAM' && (
+        <TeamPromptModal
+          isOpen={showTeamPrompt && !userTeam}
+          quizId={quizId}
+          quizTitle={quiz.title}
+          onSuccess={handleTeamSuccess}
+          onCancel={handlePromptCancel}
+          isBlocking={true}
+        />
       )}
     </div>
   );

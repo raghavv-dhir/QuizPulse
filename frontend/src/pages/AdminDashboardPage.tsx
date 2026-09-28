@@ -34,6 +34,14 @@ import {
 } from 'lucide-react';
 import { toGamePin } from '../utils/gamePin';
 
+interface ManualQuestionDraft {
+  id: string;
+  questionText: string;
+  durationSeconds: number;
+  maxScore: number;
+  options: { optionText: string; isCorrect: boolean; displayOrder: number }[];
+}
+
 export const AdminDashboardPage: React.FC = () => {
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
@@ -56,6 +64,20 @@ export const AdminDashboardPage: React.FC = () => {
   const [scoringStrategy, setScoringStrategy] = useState<ScoringStrategyType>('LINEAR');
   const [createLoading, setCreateLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Manual Question Drafts State during Manual Quiz Creation
+  const [activeQuizModalTab, setActiveQuizModalTab] = useState<'settings' | 'questions'>('settings');
+  const [manualQuestions, setManualQuestions] = useState<ManualQuestionDraft[]>([]);
+  const [editingQuestionDraftId, setEditingQuestionDraftId] = useState<string | null>(null);
+  const [qText, setQText] = useState('');
+  const [qDuration, setQDuration] = useState(15);
+  const [qMaxScore, setQMaxScore] = useState(1000);
+  const [qOpt1, setQOpt1] = useState('');
+  const [qOpt2, setQOpt2] = useState('');
+  const [qOpt3, setQOpt3] = useState('');
+  const [qOpt4, setQOpt4] = useState('');
+  const [qCorrectIdx, setQCorrectIdx] = useState(1);
+  const [questionFormError, setQuestionFormError] = useState<string | null>(null);
 
   // Users State
   const [users, setUsers] = useState<UserAdminDto[]>([]);
@@ -208,9 +230,103 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  const handleCreateQuiz = async (e: React.FormEvent) => {
+  const handleSaveQuestionDraft = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!qText.trim() || !qOpt1.trim() || !qOpt2.trim()) {
+      setQuestionFormError('Question text and at least Option A and Option B are required');
+      return;
+    }
+
+    const options = [
+      { optionText: qOpt1.trim(), isCorrect: qCorrectIdx === 1, displayOrder: 1 },
+      { optionText: qOpt2.trim(), isCorrect: qCorrectIdx === 2, displayOrder: 2 },
+    ];
+    if (qOpt3.trim()) {
+      options.push({ optionText: qOpt3.trim(), isCorrect: qCorrectIdx === 3, displayOrder: 3 });
+    }
+    if (qOpt4.trim()) {
+      options.push({ optionText: qOpt4.trim(), isCorrect: qCorrectIdx === 4, displayOrder: 4 });
+    }
+
+    if (editingQuestionDraftId) {
+      // Edit previously set question
+      setManualQuestions((prev) =>
+        prev.map((item) =>
+          item.id === editingQuestionDraftId
+            ? {
+                ...item,
+                questionText: qText.trim(),
+                durationSeconds: qDuration,
+                maxScore: qMaxScore,
+                options,
+              }
+            : item
+        )
+      );
+      setEditingQuestionDraftId(null);
+    } else {
+      // Add new question
+      const newDraft: ManualQuestionDraft = {
+        id: Math.random().toString(36).substring(2, 9),
+        questionText: qText.trim(),
+        durationSeconds: qDuration,
+        maxScore: qMaxScore,
+        options,
+      };
+      setManualQuestions((prev) => [...prev, newDraft]);
+    }
+
+    setQText('');
+    setQOpt1('');
+    setQOpt2('');
+    setQOpt3('');
+    setQOpt4('');
+    setQCorrectIdx(1);
+    setQuestionFormError(null);
+  };
+
+  const handleEditPreviouslySetQuestion = (draft: ManualQuestionDraft) => {
+    setEditingQuestionDraftId(draft.id);
+    setQText(draft.questionText);
+    setQDuration(draft.durationSeconds);
+    setQMaxScore(draft.maxScore);
+
+    const sortedOpts = [...draft.options].sort((a, b) => a.displayOrder - b.displayOrder);
+    setQOpt1(sortedOpts[0]?.optionText || '');
+    setQOpt2(sortedOpts[1]?.optionText || '');
+    setQOpt3(sortedOpts[2]?.optionText || '');
+    setQOpt4(sortedOpts[3]?.optionText || '');
+
+    const correctIdx = sortedOpts.findIndex((o) => o.isCorrect);
+    setQCorrectIdx(correctIdx >= 0 ? correctIdx + 1 : 1);
+    setQuestionFormError(null);
+  };
+
+  const handleCancelEditingQuestionDraft = () => {
+    setEditingQuestionDraftId(null);
+    setQText('');
+    setQOpt1('');
+    setQOpt2('');
+    setQOpt3('');
+    setQOpt4('');
+    setQCorrectIdx(1);
+    setQuestionFormError(null);
+  };
+
+  const handleDeleteQuestionDraft = (draftId: string) => {
+    setManualQuestions((prev) => prev.filter((q) => q.id !== draftId));
+    if (editingQuestionDraftId === draftId) {
+      handleCancelEditingQuestionDraft();
+    }
+  };
+
+  const handleCreateQuiz = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!title.trim()) {
+      setActiveQuizModalTab('settings');
+      setError('Quiz Title is required');
+      return;
+    }
 
     try {
       setCreateLoading(true);
@@ -228,9 +344,24 @@ export const AdminDashboardPage: React.FC = () => {
         allowReconnection: true,
       });
 
+      // Save any questions set during manual creation
+      for (let i = 0; i < manualQuestions.length; i++) {
+        const q = manualQuestions[i];
+        await api.questions.add(created.id, {
+          questionText: q.questionText,
+          durationSeconds: q.durationSeconds,
+          maxScore: q.maxScore,
+          displayOrder: i + 1,
+          options: q.options,
+        });
+      }
+
       setIsModalOpen(false);
       setTitle('');
       setDescription('');
+      setManualQuestions([]);
+      handleCancelEditingQuestionDraft();
+      setActiveQuizModalTab('settings');
       navigate(`/admin/quizzes/${created.id}/control`);
     } catch (err: any) {
       setError(err.message || 'Failed to create quiz');
@@ -722,17 +853,52 @@ export const AdminDashboardPage: React.FC = () => {
       {/* CREATE QUIZ MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-100 space-y-6 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-slate-100 space-y-5 animate-in fade-in zoom-in-95 max-h-[92vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-xl font-black text-slate-900">Create New Quiz</h3>
-                <p className="text-xs text-slate-500">Configure your live competition room</p>
+                <h3 className="text-xl font-black text-slate-900">Create Manual Quiz</h3>
+                <p className="text-xs text-slate-500">Configure quiz room settings and questions</p>
               </div>
               <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setManualQuestions([]);
+                  handleCancelEditingQuestionDraft();
+                  setActiveQuizModalTab('settings');
+                }}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="flex border-b border-slate-100 bg-slate-50/80 p-1 rounded-2xl gap-1">
+              <button
+                type="button"
+                onClick={() => setActiveQuizModalTab('settings')}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeQuizModalTab === 'settings'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span>1. Quiz Settings</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveQuizModalTab('questions')}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeQuizModalTab === 'questions'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span>2. Questions</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700">
+                  {manualQuestions.length}
+                </span>
               </button>
             </div>
 
@@ -742,99 +908,328 @@ export const AdminDashboardPage: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handleCreateQuiz} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Quiz Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Science Bowl Championship"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="ui-input w-full text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 5 rounds of high-speed science questions"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="ui-input w-full text-xs"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+            {activeQuizModalTab === 'settings' ? (
+              <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Game Mode
+                    Quiz Title *
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Science Bowl Championship"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="ui-input w-full text-xs font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 5 rounds of high-speed science questions"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="ui-input w-full text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Game Mode
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setMode('TEAM')}
+                        className={`p-2 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                          mode === 'TEAM'
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        Team Mode
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMode('INDIVIDUAL')}
+                        className={`p-2 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                          mode === 'INDIVIDUAL'
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        Solo Mode
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Question Duration
+                    </label>
+                    <select
+                      value={duration}
+                      onChange={(e) => setDuration(Number(e.target.value))}
+                      className="ui-input w-full text-xs"
+                    >
+                      <option value={10}>10 Seconds (Ultra-Fast)</option>
+                      <option value={15}>15 Seconds (Standard)</option>
+                      <option value={20}>20 Seconds</option>
+                      <option value={30}>30 Seconds (Relaxed)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="btn-secondary flex-1 text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveQuizModalTab('questions')}
+                    className="btn-primary flex-1 text-xs"
+                  >
+                    Next: Add Questions ({manualQuestions.length}) ➔
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Question Builder Box */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-4">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                    <span className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                      {editingQuestionDraftId ? (
+                        <>
+                          <Edit2 className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>Editing Previously Set Question</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>Add Question #{manualQuestions.length + 1}</span>
+                        </>
+                      )}
+                    </span>
+                    {editingQuestionDraftId && (
+                      <button
+                        type="button"
+                        onClick={handleCancelEditingQuestionDraft}
+                        className="text-[11px] font-bold text-slate-500 hover:text-slate-800 transition underline cursor-pointer"
+                      >
+                        Cancel Editing
+                      </button>
+                    )}
+                  </div>
+
+                  {questionFormError && (
+                    <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                      {questionFormError}
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        Question Text *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Which layer of the OSI model handles routing?"
+                        value={qText}
+                        onChange={(e) => setQText(e.target.value)}
+                        className="ui-input w-full text-xs"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Duration
+                        </label>
+                        <select
+                          value={qDuration}
+                          onChange={(e) => setQDuration(Number(e.target.value))}
+                          className="ui-input w-full text-xs"
+                        >
+                          <option value={10}>10 Seconds</option>
+                          <option value={15}>15 Seconds</option>
+                          <option value={20}>20 Seconds</option>
+                          <option value={30}>30 Seconds</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Max Points
+                        </label>
+                        <input
+                          type="number"
+                          value={qMaxScore}
+                          onChange={(e) => setQMaxScore(Number(e.target.value))}
+                          className="ui-input w-full text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 pt-1">
+                      <label className="block text-[11px] font-bold text-slate-700">
+                        Options (Select the radio for the correct option)
+                      </label>
+
+                      {[
+                        { val: qOpt1, set: setQOpt1, idx: 1, label: 'Option A *' },
+                        { val: qOpt2, set: setQOpt2, idx: 2, label: 'Option B *' },
+                        { val: qOpt3, set: setQOpt3, idx: 3, label: 'Option C (Optional)' },
+                        { val: qOpt4, set: setQOpt4, idx: 4, label: 'Option D (Optional)' },
+                      ].map((item) => (
+                        <div key={item.idx} className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="draftCorrectOption"
+                            checked={qCorrectIdx === item.idx}
+                            onChange={() => setQCorrectIdx(item.idx)}
+                            className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <input
+                            type="text"
+                            placeholder={item.label}
+                            value={item.val}
+                            onChange={(e) => item.set(e.target.value)}
+                            className="ui-input flex-1 !h-9 text-xs"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
                     <button
                       type="button"
-                      onClick={() => setMode('TEAM')}
-                      className={`p-2 rounded-xl text-xs font-bold border transition ${
-                        mode === 'TEAM'
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                      }`}
+                      onClick={handleSaveQuestionDraft}
+                      className="btn-primary w-full text-xs !h-9 shadow-md shadow-indigo-500/20"
                     >
-                      Team
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMode('INDIVIDUAL')}
-                      className={`p-2 rounded-xl text-xs font-bold border transition ${
-                        mode === 'INDIVIDUAL'
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      Solo
+                      {editingQuestionDraftId ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Save Changes to Question</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Question to Quiz</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Question Duration
-                  </label>
-                  <select
-                    value={duration}
-                    onChange={(e) => setDuration(Number(e.target.value))}
-                    className="ui-input w-full text-xs"
+                {/* Previously Set Questions List */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">
+                      Previously Set Questions ({manualQuestions.length})
+                    </h4>
+                    <span className="text-[11px] text-slate-400">
+                      Click Edit on any question to change it
+                    </span>
+                  </div>
+
+                  {manualQuestions.length === 0 ? (
+                    <div className="p-4 rounded-xl border border-dashed border-slate-300 text-center text-xs text-slate-400">
+                      No questions set yet. Use the form above to add questions, or click Create to add questions in the control room.
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                      {manualQuestions.map((q, idx) => (
+                        <div
+                          key={q.id}
+                          className={`p-3.5 rounded-xl border transition space-y-2 ${
+                            editingQuestionDraftId === q.id
+                              ? 'bg-indigo-50/70 border-indigo-300 ring-2 ring-indigo-200'
+                              : 'bg-white border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="space-y-0.5">
+                              <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                                Question {idx + 1} ({q.durationSeconds}s • {q.maxScore} pts)
+                              </span>
+                              <p className="text-xs font-bold text-slate-900 line-clamp-2">
+                                {q.questionText}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleEditPreviouslySetQuestion(q)}
+                                className="px-2 py-1 rounded-lg text-[11px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition flex items-center gap-1 cursor-pointer"
+                                title="Edit this previously set question"
+                              >
+                                <Edit2 className="w-3 h-3" />
+                                <span>Edit</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteQuestionDraft(q.id)}
+                                className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                title="Delete question"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Options pills */}
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {q.options.map((opt, oIdx) => (
+                              <span
+                                key={oIdx}
+                                className={`text-[10px] px-2 py-0.5 rounded-md font-semibold flex items-center gap-1 border ${
+                                  opt.isCorrect
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold'
+                                    : 'bg-slate-50 text-slate-600 border-slate-200'
+                                }`}
+                              >
+                                <span>{opt.optionText}</span>
+                                {opt.isCorrect && <Check className="w-3 h-3 text-emerald-600" />}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom Action Buttons */}
+                <div className="pt-4 border-t border-slate-100 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setActiveQuizModalTab('settings')}
+                    className="btn-secondary flex-1 text-xs"
                   >
-                    <option value={10}>10 Seconds (Ultra-Fast)</option>
-                    <option value={15}>15 Seconds (Standard)</option>
-                    <option value={20}>20 Seconds</option>
-                    <option value={30}>30 Seconds (Relaxed)</option>
-                  </select>
+                    ⬅ Back to Settings
+                  </button>
+                  <button
+                    type="button"
+                    disabled={createLoading}
+                    onClick={() => handleCreateQuiz()}
+                    className="btn-primary flex-1 text-xs shadow-lg shadow-indigo-500/25"
+                  >
+                    {createLoading
+                      ? 'Creating Quiz...'
+                      : `Create Quiz (${manualQuestions.length} Questions) ➔`}
+                  </button>
                 </div>
               </div>
-
-              <div className="pt-4 border-t border-slate-100 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="btn-secondary flex-1"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createLoading}
-                  className="btn-primary flex-1"
-                >
-                  {createLoading ? 'Creating...' : 'Create & Add Questions ➔'}
-                </button>
-              </div>
-            </form>
+            )}
           </div>
         </div>
       )}

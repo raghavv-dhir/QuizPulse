@@ -15,6 +15,7 @@ import com.example.quiz.repository.QuizRepository;
 import com.example.quiz.repository.TeamMemberRepository;
 import com.example.quiz.repository.TeamRepository;
 import com.example.quiz.repository.UserRepository;
+import com.example.quiz.websocket.QuizWebSocketService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ public class TeamService {
     private final QuizRepository quizRepository;
     private final UserRepository userRepository;
     private final QuizParticipantRepository quizParticipantRepository;
+    private final QuizWebSocketService webSocketService;
 
     @Transactional
     public TeamDto createTeam(Long quizId, CreateTeamRequest request, Long creatorUserId) {
@@ -73,7 +75,9 @@ public class TeamService {
         }
 
         log.info("Created team '{}' (code: {}) for quiz {}", savedTeam.getName(), savedTeam.getCode(), quizId);
-        return mapToDto(savedTeam);
+        TeamDto dto = mapToDto(savedTeam);
+        webSocketService.broadcastQuizEvent(quizId, "TEAM_CREATED", dto);
+        return dto;
     }
 
     @Transactional
@@ -84,7 +88,9 @@ public class TeamService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         addMemberInternal(team, user);
-        return mapToDto(team);
+        TeamDto dto = mapToDto(team);
+        webSocketService.broadcastQuizEvent(team.getQuiz().getId(), "TEAM_MEMBER_JOINED", dto);
+        return dto;
     }
 
     @Transactional
@@ -96,7 +102,9 @@ public class TeamService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         addMemberInternal(team, user);
-        return mapToDto(team);
+        TeamDto dto = mapToDto(team);
+        webSocketService.broadcastQuizEvent(quizId, "TEAM_MEMBER_JOINED", dto);
+        return dto;
     }
 
     private void addMemberInternal(Team team, User user) {

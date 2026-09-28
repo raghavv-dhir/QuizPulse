@@ -22,6 +22,8 @@ import {
   Trophy,
   Sparkles,
   Zap,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { toGamePin } from '../utils/gamePin';
 
@@ -45,8 +47,9 @@ export const QuizControlRoomPage: React.FC = () => {
     incorrectCount: number;
   }>({ totalAnswers: 0, correctCount: 0, incorrectCount: 0 });
 
-  // Add Question Modal
+  // Add/Edit Question Modal
   const [isAddQuestionModal, setIsAddQuestionModal] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
   const [questionText, setQuestionText] = useState('');
   const [durationSec, setDurationSec] = useState(15);
   const [maxPts, setMaxPts] = useState(1000);
@@ -128,6 +131,37 @@ export const QuizControlRoomPage: React.FC = () => {
     }
   };
 
+  const handleOpenAddQuestion = () => {
+    setEditingQuestionId(null);
+    setQuestionText('');
+    setOpt1('');
+    setOpt2('');
+    setOpt3('');
+    setOpt4('');
+    setCorrectOptIdx(1);
+    setDurationSec(quiz?.defaultQuestionDurationSeconds || 15);
+    setMaxPts(quiz?.maxScorePerQuestion || 1000);
+    setIsAddQuestionModal(true);
+  };
+
+  const handleOpenEditQuestion = (q: any) => {
+    setEditingQuestionId(q.id);
+    setQuestionText(q.questionText || '');
+    setDurationSec(q.durationSeconds || 15);
+    setMaxPts(q.maxScore || 1000);
+
+    const sortedOpts = [...(q.options || [])].sort((a, b) => a.displayOrder - b.displayOrder);
+    setOpt1(sortedOpts[0]?.optionText || '');
+    setOpt2(sortedOpts[1]?.optionText || '');
+    setOpt3(sortedOpts[2]?.optionText || '');
+    setOpt4(sortedOpts[3]?.optionText || '');
+
+    const correctIdx = sortedOpts.findIndex((o) => o.isCorrect);
+    setCorrectOptIdx(correctIdx >= 0 ? correctIdx + 1 : 1);
+
+    setIsAddQuestionModal(true);
+  };
+
   const handleAddQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!questionText.trim() || !opt1.trim() || !opt2.trim()) {
@@ -148,15 +182,27 @@ export const QuizControlRoomPage: React.FC = () => {
 
     try {
       setActionLoading(true);
-      await api.questions.add(quizId, {
-        questionText: questionText.trim(),
-        durationSeconds: durationSec,
-        maxScore: maxPts,
-        displayOrder: (quiz?.questions?.length || 0) + 1,
-        options,
-      });
+      if (editingQuestionId) {
+        const currentQ = quiz?.questions?.find((q) => q.id === editingQuestionId);
+        await api.questions.update(editingQuestionId, {
+          questionText: questionText.trim(),
+          durationSeconds: durationSec,
+          maxScore: maxPts,
+          displayOrder: currentQ?.displayOrder || 1,
+          options,
+        });
+      } else {
+        await api.questions.add(quizId, {
+          questionText: questionText.trim(),
+          durationSeconds: durationSec,
+          maxScore: maxPts,
+          displayOrder: (quiz?.questions?.length || 0) + 1,
+          options,
+        });
+      }
 
       setIsAddQuestionModal(false);
+      setEditingQuestionId(null);
       setQuestionText('');
       setOpt1('');
       setOpt2('');
@@ -165,7 +211,7 @@ export const QuizControlRoomPage: React.FC = () => {
       setCorrectOptIdx(1);
       loadData();
     } catch (err: any) {
-      alert(err.message || 'Failed to add question');
+      alert(err.message || (editingQuestionId ? 'Failed to update question' : 'Failed to add question'));
     } finally {
       setActionLoading(false);
     }
@@ -448,7 +494,7 @@ export const QuizControlRoomPage: React.FC = () => {
               <p className="text-xs text-slate-500">Add or manage multiple choice questions</p>
             </div>
             <button
-              onClick={() => setIsAddQuestionModal(true)}
+              onClick={handleOpenAddQuestion}
               className="btn-primary text-xs !h-10"
             >
               <Plus className="w-4 h-4" />
@@ -466,12 +512,23 @@ export const QuizControlRoomPage: React.FC = () => {
                   <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100">
                     Question {idx + 1} ({q.durationSeconds}s • {q.maxScore} pts)
                   </span>
-                  <button
-                    onClick={() => handleDeleteQuestion(q.id)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => handleOpenEditQuestion(q)}
+                      className="px-2.5 py-1 rounded-lg text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/60 transition flex items-center gap-1 cursor-pointer"
+                      title="Edit this previously set question"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>Edit Question</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteQuestion(q.id)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                      title="Delete question"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 <h4 className="text-base font-bold text-slate-900">{q.questionText}</h4>
@@ -552,9 +609,21 @@ export const QuizControlRoomPage: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-xl font-black text-slate-900">Add New Question</h3>
+              <div>
+                <h3 className="text-xl font-black text-slate-900">
+                  {editingQuestionId ? 'Edit Previously Set Question' : 'Add New Question'}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {editingQuestionId
+                    ? 'Modify question prompt, timer, points, or options below'
+                    : 'Configure question text, time limit, and choices'}
+                </p>
+              </div>
               <button
-                onClick={() => setIsAddQuestionModal(false)}
+                onClick={() => {
+                  setIsAddQuestionModal(false);
+                  setEditingQuestionId(null);
+                }}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
               >
                 <X className="w-5 h-5" />
@@ -644,7 +713,7 @@ export const QuizControlRoomPage: React.FC = () => {
                   disabled={actionLoading}
                   className="btn-primary flex-1 text-xs"
                 >
-                  Save Question
+                  {editingQuestionId ? 'Save Changes to Question' : 'Save Question'}
                 </button>
               </div>
             </form>

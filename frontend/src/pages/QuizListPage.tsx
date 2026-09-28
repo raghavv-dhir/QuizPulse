@@ -16,6 +16,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { toGamePin, parsePinToId } from '../utils/gamePin';
+import { TeamPromptModal } from '../components/TeamPromptModal';
 
 export const QuizListPage: React.FC = () => {
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
@@ -23,7 +24,9 @@ export const QuizListPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'LIVE' | 'LOBBY' | 'COMPLETED'>('ALL');
   const [gamePin, setGamePin] = useState('');
-  const { isAdmin } = useAuth();
+  const [selectedTeamQuiz, setSelectedTeamQuiz] = useState<{ id: number; title: string } | null>(null);
+  const [checkingTeamQuizId, setCheckingTeamQuizId] = useState<number | null>(null);
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const loadQuizzes = async () => {
@@ -51,14 +54,65 @@ export const QuizListPage: React.FC = () => {
     }
   }, [loading]);
 
-  const handleJoinPin = (e: React.FormEvent) => {
+  const handleJoinPin = async (e: React.FormEvent) => {
     e.preventDefault();
     const quizId = parsePinToId(gamePin);
     if (!quizId) {
       alert('Please enter a valid Game PIN or Quiz ID');
       return;
     }
-    navigate(`/quizzes/${quizId}/lobby`);
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const q = await api.quizzes.get(quizId);
+      if (q.mode === 'TEAM') {
+        const teams = await api.teams.list(quizId);
+        const myTeam = teams.find((t) => t.members?.some((m) => m.userId === user?.id));
+        if (myTeam) {
+          navigate(`/quizzes/${quizId}/lobby`);
+        } else {
+          setSelectedTeamQuiz({
+            id: q.id,
+            title: q.title,
+          });
+        }
+      } else {
+        navigate(`/quizzes/${quizId}/lobby`);
+      }
+    } catch {
+      navigate(`/quizzes/${quizId}/lobby`);
+    }
+  };
+
+  const handleJoinQuiz = async (quiz: QuizSummary) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    if (quiz.mode === 'TEAM') {
+      try {
+        setCheckingTeamQuizId(quiz.id);
+        const teams = await api.teams.list(quiz.id);
+        const myTeam = teams.find((t) => t.members?.some((m) => m.userId === user?.id));
+        if (myTeam) {
+          navigate(`/quizzes/${quiz.id}/lobby`);
+        } else {
+          setSelectedTeamQuiz({
+            id: quiz.id,
+            title: quiz.title,
+          });
+        }
+      } catch {
+        navigate(`/quizzes/${quiz.id}/lobby`);
+      } finally {
+        setCheckingTeamQuizId(null);
+      }
+    } else {
+      navigate(`/quizzes/${quiz.id}/lobby`);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -348,13 +402,25 @@ export const QuizListPage: React.FC = () => {
                         <span>View Podium & Standings</span>
                       </Link>
                     ) : (
-                      <Link
-                        to={`/quizzes/${quiz.id}/lobby`}
-                        className="btn-primary w-full text-xs justify-center !h-11 shadow-md shadow-indigo-500/20"
+                      <button
+                        onClick={() => handleJoinQuiz(quiz)}
+                        disabled={checkingTeamQuizId === quiz.id}
+                        className={`w-full text-xs justify-center !h-11 shadow-md transition flex items-center gap-1.5 rounded-xl font-bold cursor-pointer ${
+                          quiz.mode === 'TEAM'
+                            ? 'bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-700 hover:from-indigo-700 hover:to-violet-800 text-white shadow-indigo-500/25'
+                            : 'btn-primary shadow-indigo-500/20'
+                        }`}
                       >
-                        <span>Join Game</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
+                        {checkingTeamQuizId === quiz.id ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            {quiz.mode === 'TEAM' && <Users className="w-4 h-4 text-indigo-200" />}
+                            <span>{quiz.mode === 'TEAM' ? 'Join Team Quiz' : 'Join Game'}</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
                     )}
                   </div>
                 </div>
@@ -363,6 +429,22 @@ export const QuizListPage: React.FC = () => {
           </div>
         )}
       </section>
+
+      {/* Team Prompt Modal when Joining Team Quiz */}
+      {selectedTeamQuiz && (
+        <TeamPromptModal
+          isOpen={!!selectedTeamQuiz}
+          quizId={selectedTeamQuiz.id}
+          quizTitle={selectedTeamQuiz.title}
+          onSuccess={() => {
+            const targetId = selectedTeamQuiz.id;
+            setSelectedTeamQuiz(null);
+            navigate(`/quizzes/${targetId}/lobby`);
+          }}
+          onCancel={() => setSelectedTeamQuiz(null)}
+          isBlocking={false}
+        />
+      )}
     </div>
   );
 };
