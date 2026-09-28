@@ -72,27 +72,27 @@ export const ResultsPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-3.5 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-10">
       {/* Top Celebratory Header */}
-      <div className="text-center space-y-2 sm:space-y-3">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-[11px] sm:text-xs font-bold border border-amber-200 shadow-sm">
-          <Trophy className="w-3.5 h-3.5 text-amber-600" />
-          <span>Competition Concluded</span>
+      <div className="text-center space-y-3">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 text-amber-800 text-xs font-black border border-amber-200/90 shadow-sm animate-bounce">
+          <Trophy className="w-4 h-4 text-amber-600 fill-amber-500" />
+          <span>OFFICIAL VICTORY CEREMONY</span>
         </div>
 
-        <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
           {quizTitle}
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500 font-medium">
-          Official Final Standings & Speed Breakdown
+        <p className="text-xs sm:text-base text-slate-500 font-medium max-w-md mx-auto">
+          Tournament concluded! Here are the champions and speed records.
         </p>
 
         {myRank && (
-          <div className="inline-flex items-center gap-2 sm:gap-3 bg-indigo-50 border border-indigo-200/80 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-sm text-xs sm:text-sm">
-            <span className="font-bold text-indigo-700">Your Result:</span>
-            <span className="font-black text-indigo-900 font-mono">
+          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-indigo-50 via-violet-50 to-indigo-50 border border-indigo-200/80 px-5 py-2.5 rounded-2xl shadow-sm text-xs sm:text-sm">
+            <span className="font-bold text-indigo-700">Your Final Standing:</span>
+            <span className="font-black text-indigo-950 font-mono text-sm sm:text-base">
               Rank #{myRank}
             </span>
-            <span className="font-extrabold text-indigo-600 bg-white px-2 py-0.5 rounded-lg border border-indigo-100 text-xs">
-              {myTotalScore} pts
+            <span className="font-black text-indigo-600 bg-white px-2.5 py-1 rounded-xl border border-indigo-100 shadow-xs">
+              {myTotalScore.toLocaleString()} pts
             </span>
           </div>
         )}
@@ -100,58 +100,65 @@ export const ResultsPage: React.FC = () => {
 
       {/* Fun 1st, 2nd, 3rd Podium (Responsive) */}
       {top3.length > 0 && (
-        <div className="pt-2 sm:pt-4 pb-2">
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 items-end max-w-2xl mx-auto text-center">
+        <div className="pt-4 pb-2">
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-6 items-end max-w-2xl mx-auto text-center">
             {/* 2nd Place */}
             {top3[1] ? (
-              <div className="bg-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-5 border border-slate-200 shadow-sm space-y-1 sm:space-y-2 order-1 h-44 sm:h-56 flex flex-col justify-between">
-                <div className="space-y-0.5 sm:space-y-1">
-                  <span className="text-xl sm:text-2xl">🥈</span>
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 block">2nd</span>
-                  <h4 className="text-xs sm:text-base font-extrabold text-slate-900 truncate">{top3[1].name}</h4>
+              <div className="bg-gradient-to-b from-slate-50 via-white to-slate-100/80 rounded-3xl p-3 sm:p-5 border border-slate-300 shadow-lg space-y-2 order-1 h-48 sm:h-60 flex flex-col justify-between transition-transform hover:-translate-y-1">
+                <div className="space-y-1">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-200 text-slate-700 flex items-center justify-center text-xl sm:text-2xl mx-auto shadow-inner">
+                    🥈
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">2nd Place</span>
+                  <h4 className="text-xs sm:text-base font-black text-slate-900 truncate">{top3[1].name}</h4>
                 </div>
-                <div className="bg-slate-50 rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5 border border-slate-100">
-                  <span className="font-mono font-black text-xs sm:text-base text-slate-800 block">
+                <div className="bg-white/80 rounded-2xl p-2 sm:p-3 border border-slate-200 shadow-inner">
+                  <span className="font-mono font-black text-xs sm:text-lg text-slate-800 block">
                     {top3[1].totalScore.toLocaleString()}
                   </span>
-                  <span className="text-[9px] sm:text-[10px] text-slate-400 font-semibold">pts</span>
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider">pts</span>
                 </div>
               </div>
             ) : <div className="order-1" />}
 
             {/* 1st Place (Winner) */}
             {top3[0] && (
-              <div className="bg-gradient-to-b from-amber-50 to-white rounded-2xl sm:rounded-3xl p-3 sm:p-6 border-2 border-amber-300 shadow-xl shadow-amber-500/10 space-y-1 sm:space-y-2 order-2 h-54 sm:h-72 flex flex-col justify-between relative scale-[1.03] sm:scale-105">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-900 font-black text-[9px] sm:text-[10px] uppercase tracking-wider px-2 sm:px-3 py-0.5 rounded-full shadow-md shrink-0 whitespace-nowrap">
-                  👑 Winner
+              <div className="relative bg-gradient-to-b from-amber-100/90 via-amber-50 to-white rounded-3xl p-3.5 sm:p-6 border-2 border-amber-400 shadow-2xl shadow-amber-500/20 space-y-2 order-2 h-58 sm:h-76 flex flex-col justify-between scale-[1.04] sm:scale-110 z-10 transition-transform hover:-translate-y-1">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[10px] uppercase tracking-wider px-3 sm:px-4 py-1 rounded-full shadow-lg shrink-0 whitespace-nowrap flex items-center gap-1 border border-amber-300">
+                  <span>👑</span>
+                  <span>CHAMPION</span>
                 </div>
-                <div className="space-y-0.5 sm:space-y-1 pt-1.5 sm:pt-2">
-                  <span className="text-3xl sm:text-4xl">🥇</span>
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-amber-700 block">Champion</span>
+                <div className="space-y-1 pt-2 sm:pt-3">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-amber-200/80 text-amber-900 flex items-center justify-center text-2xl sm:text-4xl mx-auto shadow-inner border border-amber-300">
+                    🥇
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 block">Grand Winner</span>
                   <h3 className="text-xs sm:text-lg font-black text-slate-900 truncate">{top3[0].name}</h3>
                 </div>
-                <div className="bg-amber-100/70 rounded-xl sm:rounded-2xl p-2 sm:p-3 border border-amber-200">
-                  <span className="font-mono font-black text-sm sm:text-xl text-amber-950 block">
+                <div className="bg-amber-200/50 rounded-2xl p-2 sm:p-3.5 border border-amber-300/80 shadow-inner">
+                  <span className="font-mono font-black text-sm sm:text-2xl text-amber-950 block">
                     {top3[0].totalScore.toLocaleString()}
                   </span>
-                  <span className="text-[9px] sm:text-[10px] text-amber-700 font-bold">points</span>
+                  <span className="text-[9px] sm:text-[10px] text-amber-800 font-black uppercase tracking-wider">pts</span>
                 </div>
               </div>
             )}
 
             {/* 3rd Place */}
             {top3[2] ? (
-              <div className="bg-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-5 border border-slate-200 shadow-sm space-y-1 sm:space-y-2 order-3 h-38 sm:h-48 flex flex-col justify-between">
-                <div className="space-y-0.5 sm:space-y-1">
-                  <span className="text-xl sm:text-2xl">🥉</span>
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 block">3rd</span>
-                  <h4 className="text-xs sm:text-base font-extrabold text-slate-900 truncate">{top3[2].name}</h4>
+              <div className="bg-gradient-to-b from-orange-50/60 via-white to-amber-50/40 rounded-3xl p-3 sm:p-5 border border-amber-200 shadow-md space-y-2 order-3 h-42 sm:h-52 flex flex-col justify-between transition-transform hover:-translate-y-1">
+                <div className="space-y-1">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg sm:text-xl mx-auto shadow-inner">
+                    🥉
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 block">3rd Place</span>
+                  <h4 className="text-xs sm:text-base font-black text-slate-900 truncate">{top3[2].name}</h4>
                 </div>
-                <div className="bg-slate-50 rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5 border border-slate-100">
-                  <span className="font-mono font-black text-xs sm:text-base text-slate-800 block">
+                <div className="bg-white/80 rounded-2xl p-2 sm:p-2.5 border border-amber-100 shadow-inner">
+                  <span className="font-mono font-black text-xs sm:text-base text-amber-950 block">
                     {top3[2].totalScore.toLocaleString()}
                   </span>
-                  <span className="text-[9px] sm:text-[10px] text-slate-400 font-semibold">pts</span>
+                  <span className="text-[9px] sm:text-[10px] text-amber-700 font-bold uppercase tracking-wider">pts</span>
                 </div>
               </div>
             ) : <div className="order-3" />}
@@ -160,7 +167,7 @@ export const ResultsPage: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+      <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-5 sm:p-8 border border-slate-200/90 shadow-xl shadow-slate-200/40 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <button

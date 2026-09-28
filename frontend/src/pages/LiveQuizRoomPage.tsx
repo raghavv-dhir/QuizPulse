@@ -182,29 +182,25 @@ export const LiveQuizRoomPage: React.FC = () => {
 
   const { currentQuestion, serverQuestionStartTimeMs, questionDurationMs } = quizState;
 
-  // 4 iconic vibrant button themes
+  // 4 iconic vibrant 3D arcade button themes
   const buttonThemes = [
     {
-      bg: 'bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 shadow-rose-500/25',
-      letterBg: 'bg-white/20 text-white',
+      bg: 'game-btn-red',
       shape: '▲',
       letter: 'A',
     },
     {
-      bg: 'bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-sky-500/25',
-      letterBg: 'bg-white/20 text-white',
+      bg: 'game-btn-blue',
       shape: '◆',
       letter: 'B',
     },
     {
-      bg: 'bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/25',
-      letterBg: 'bg-white/20 text-white',
+      bg: 'game-btn-amber',
       shape: '●',
       letter: 'C',
     },
     {
-      bg: 'bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-emerald-500/25',
-      letterBg: 'bg-white/20 text-white',
+      bg: 'game-btn-green',
       shape: '■',
       letter: 'D',
     },
@@ -256,14 +252,14 @@ export const LiveQuizRoomPage: React.FC = () => {
           {currentQuestion && serverQuestionStartTimeMs && questionDurationMs ? (
             <div className="space-y-4 sm:space-y-6">
               {/* Question Header & Live Timing Card */}
-              <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-sm border border-slate-200/80 space-y-4 sm:space-y-5">
-                <div className="flex items-center justify-between gap-2">
+              <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-xl shadow-slate-200/50 border border-slate-200/80 space-y-4 sm:space-y-6">
+                <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-black text-[11px] sm:text-xs uppercase tracking-wider border border-indigo-100">
-                      Q{currentQuestion.displayOrder}
+                    <span className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-black text-xs uppercase tracking-wider shadow-sm shadow-indigo-500/20">
+                      Question {currentQuestion.displayOrder}
                     </span>
-                    <span className="text-[11px] sm:text-xs text-slate-400 font-bold hidden xs:inline">
-                      Max {currentQuestion.maxScore} pts
+                    <span className="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-600 text-xs font-black hidden xs:inline border border-slate-200/80">
+                      🎯 Max {currentQuestion.maxScore} pts
                     </span>
                   </div>
 
@@ -286,8 +282,8 @@ export const LiveQuizRoomPage: React.FC = () => {
                 />
 
                 {/* Question Text */}
-                <div className="pt-1">
-                  <h3 className="text-lg sm:text-2xl font-black text-slate-900 leading-snug">
+                <div className="pt-2">
+                  <h3 className="text-xl sm:text-3xl font-black text-slate-900 leading-snug tracking-tight">
                     {currentQuestion.questionText}
                   </h3>
                 </div>
@@ -308,19 +304,19 @@ export const LiveQuizRoomPage: React.FC = () => {
                   const isCorrect = questionEndedData && questionEndedData.correctOptionId === option.id;
 
                   let customStyle = theme.bg;
-                  let ringStyle = 'shadow-lg';
+                  let ringStyle = '';
 
                   if (isAnswerLocked) {
                     if (isSelected) {
-                      ringStyle = 'ring-4 ring-offset-2 ring-indigo-500 scale-[1.02] shadow-2xl';
+                      ringStyle = 'ring-4 ring-offset-2 ring-indigo-500 scale-[1.02] shadow-2xl brightness-110 z-10';
                     } else {
-                      customStyle += ' opacity-50 filter grayscale-[30%]';
+                      customStyle += ' opacity-40 filter grayscale-[40%] scale-[0.98]';
                     }
                   }
 
                   if (questionEndedData) {
                     if (isCorrect) {
-                      customStyle = 'bg-gradient-to-br from-emerald-500 to-green-600 ring-4 ring-offset-2 ring-emerald-500 shadow-2xl';
+                      customStyle = 'bg-gradient-to-br from-emerald-500 to-teal-600 ring-4 ring-offset-2 ring-emerald-400 shadow-2xl shadow-emerald-500/50 scale-[1.02] z-10';
                     } else if (isSelected && !isCorrect) {
                       customStyle = 'bg-slate-700 opacity-60';
                     } else {
@@ -333,24 +329,24 @@ export const LiveQuizRoomPage: React.FC = () => {
                       key={option.id}
                       onClick={() => handleSelectAndSubmit(option.id)}
                       disabled={isAnswerLocked || submitting || !!questionEndedData || isPaused}
-                      className={`game-btn ${customStyle} ${ringStyle}`}
+                      className={`game-btn ${customStyle} ${ringStyle} transition-all duration-200`}
                     >
-                      <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center font-black text-sm shrink-0 shadow-inner">
-                        <span>{theme.shape}</span>
+                      <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center font-black text-base shrink-0 shadow-inner border border-white/25">
+                        <span className="drop-shadow-sm">{theme.shape}</span>
                       </div>
 
-                      <div className="flex-1 font-bold text-base sm:text-lg leading-snug">
+                      <div className="flex-1 font-bold text-base sm:text-lg leading-snug drop-shadow-sm">
                         {option.optionText}
                       </div>
 
                       {isSelected && (
-                        <div className="w-8 h-8 rounded-full bg-white text-indigo-600 flex items-center justify-center shrink-0 shadow-md">
+                        <div className="w-9 h-9 rounded-full bg-white text-indigo-600 flex items-center justify-center shrink-0 shadow-lg animate-in zoom-in-75">
                           <Check className="w-5 h-5 stroke-[3]" />
                         </div>
                       )}
 
                       {questionEndedData && isCorrect && (
-                        <div className="w-8 h-8 rounded-full bg-white text-emerald-600 flex items-center justify-center shrink-0 shadow-md animate-bounce">
+                        <div className="w-9 h-9 rounded-full bg-white text-emerald-600 flex items-center justify-center shrink-0 shadow-lg animate-bounce">
                           <Check className="w-5 h-5 stroke-[3]" />
                         </div>
                       )}

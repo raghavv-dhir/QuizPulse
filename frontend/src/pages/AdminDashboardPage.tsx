@@ -530,64 +530,72 @@ export const AdminDashboardPage: React.FC = () => {
       </div>
 
       {/* Metrics Row (Platform-Wide Statistics) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-1">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+        <div className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all space-y-2 group">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-wider block">
               Registered Users
             </span>
-            <Users className="w-4 h-4 text-indigo-600" />
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Users className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono block">
+          <span className="text-2xl sm:text-4xl font-black text-slate-900 font-mono block tracking-tight">
             {userStats?.totalUsers ?? users.length}
           </span>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-1">
+        <div className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-200 transition-all space-y-2 group">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block">
-              Admins / Hosts
+            <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-wider block">
+              Admins & Hosts
             </span>
-            <Shield className="w-4 h-4 text-amber-500" />
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Shield className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-amber-700 font-mono block">
+          <span className="text-2xl sm:text-4xl font-black text-amber-600 font-mono block tracking-tight">
             {userStats?.totalAdmins ?? users.filter((u) => u.role === 'ROLE_ADMIN').length}
           </span>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-1">
+        <div className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all space-y-2 group">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block">
-              Participants
+            <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-wider block">
+              Active Players
             </span>
-            <UserIcon className="w-4 h-4 text-emerald-600" />
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <UserIcon className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-emerald-700 font-mono block">
+          <span className="text-2xl sm:text-4xl font-black text-emerald-600 font-mono block tracking-tight">
             {userStats?.totalParticipants ?? users.filter((u) => u.role === 'ROLE_PARTICIPANT').length}
           </span>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-1">
+        <div className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-rose-200 transition-all space-y-2 group">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-wider block">
               Total Quizzes
             </span>
-            <Zap className="w-4 h-4 text-rose-500" />
+            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Zap className="w-4 h-4" />
+            </div>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono block">
+          <span className="text-2xl sm:text-4xl font-black text-slate-900 font-mono block tracking-tight">
             {quizzes.length}
           </span>
         </div>
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
+      <div className="flex items-center gap-2 border-b border-slate-200/90 pb-3">
         <button
           onClick={() => setAdminTab('quizzes')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
             adminTab === 'quizzes'
-              ? 'bg-slate-900 text-white shadow-sm'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25 scale-[1.02]'
+              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
           }`}
         >
           <Zap className="w-3.5 h-3.5" />
@@ -596,10 +604,10 @@ export const AdminDashboardPage: React.FC = () => {
 
         <button
           onClick={() => setAdminTab('users')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
             adminTab === 'users'
-              ? 'bg-slate-900 text-white shadow-sm'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25 scale-[1.02]'
+              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
           }`}
         >
           <Users className="w-3.5 h-3.5" />

@@ -51,32 +51,34 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const fraction = Math.floor((totalSeconds - wholeSec) * 100);
   const formattedTime = `${String(wholeSec).padStart(2, '0')}.${String(fraction).padStart(2, '0')}`;
 
-  let timeTextColor = 'text-indigo-600';
-  let barGradient = 'from-indigo-500 to-violet-600';
+  let timeTextColor = 'text-indigo-600 dark:text-indigo-400';
+  let barGradient = 'from-indigo-500 via-indigo-600 to-violet-600 shadow-indigo-500/30';
 
   if (percentage <= 20) {
     timeTextColor = 'text-rose-600 animate-pulse';
-    barGradient = 'from-rose-500 to-red-600';
+    barGradient = 'from-rose-500 via-red-600 to-rose-700 shadow-rose-500/50 animate-pulse';
   } else if (percentage <= 40) {
     timeTextColor = 'text-amber-600';
-    barGradient = 'from-amber-500 to-orange-500';
+    barGradient = 'from-amber-500 via-orange-500 to-amber-600 shadow-amber-500/40';
   }
 
   return (
-    <div className="w-full space-y-1.5">
+    <div className="w-full space-y-2">
       <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-        <span className="flex items-center gap-1.5 uppercase tracking-wider text-[10px] sm:text-xs">
-          <Clock className="w-3.5 h-3.5 text-slate-400" />
-          <span>Timer</span>
+        <span className="flex items-center gap-1.5 uppercase tracking-wider text-[11px] font-black text-slate-400">
+          <Clock className="w-3.5 h-3.5 text-indigo-500" />
+          <span>Round Timer</span>
         </span>
-        <span className={`font-mono text-sm sm:text-base font-black tabular-nums ${timeTextColor}`}>
-          {formattedTime}s
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className={`font-mono text-base sm:text-lg font-black tabular-nums tracking-tight ${timeTextColor}`}>
+            {formattedTime}s
+          </span>
+        </div>
       </div>
 
-      <div className="w-full h-2.5 sm:h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60 shadow-inner">
+      <div className="relative w-full h-3 sm:h-3.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/80 shadow-inner">
         <div
-          className={`h-full rounded-full bg-gradient-to-r transition-all duration-75 ${barGradient}`}
+          className={`h-full rounded-full bg-gradient-to-r shadow-md transition-all duration-75 ${barGradient}`}
           style={{ width: `${percentage}%` }}
         />
       </div>

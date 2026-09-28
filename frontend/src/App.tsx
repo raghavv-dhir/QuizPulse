@@ -45,9 +45,16 @@ export const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
-          <div className="min-h-screen flex flex-col">
+          <div className="min-h-screen flex flex-col relative overflow-hidden bg-slate-50/70">
+            {/* Ambient Background Light Orbs */}
+            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+              <div className="absolute -top-36 -right-36 w-[500px] h-[500px] bg-gradient-to-br from-indigo-500/10 to-violet-500/10 rounded-full blur-3xl animate-pulse-glow" />
+              <div className="absolute top-1/3 -left-48 w-[450px] h-[450px] bg-gradient-to-tr from-sky-500/10 to-blue-500/10 rounded-full blur-3xl animate-float" />
+              <div className="absolute -bottom-36 right-1/4 w-[500px] h-[500px] bg-gradient-to-tl from-purple-500/10 to-pink-500/10 rounded-full blur-3xl" />
+            </div>
+
             <Navbar />
-            <main className="flex-1">
+            <main className="flex-1 relative z-10">
               <Routes>
                 {/* Public / Auth */}
                 <Route path="/login" element={<LoginPage />} />

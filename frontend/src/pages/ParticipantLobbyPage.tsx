@@ -212,47 +212,55 @@ export const ParticipantLobbyPage: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto px-3.5 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
-      {/* Top Game PIN Banner */}
-      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-white shadow-xl shadow-indigo-500/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
-        <div className="space-y-1">
-          <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-indigo-200 block">
-            Game Room PIN
-          </span>
-          <div className="flex items-center gap-3">
-            <span className="text-3xl sm:text-5xl font-black font-mono tracking-wider">
-              {gamePin}
-            </span>
-            <button
-              onClick={copyPinToClipboard}
-              className="px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-xs font-bold text-white transition flex items-center gap-1.5"
-            >
-              {copiedPin ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedPin ? 'Copied!' : 'Copy PIN'}</span>
-            </button>
-          </div>
-        </div>
+      {/* Top Game PIN Banner - High-Impact Esports Stage */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white border border-indigo-500/30 shadow-2xl shadow-indigo-950/40">
+        <div className="absolute -top-12 -right-12 w-48 h-48 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-violet-500/20 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border border-white/20 sm:self-center">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-indigo-700 flex items-center justify-center font-black text-sm shadow-md shrink-0">
-            {user?.fullName ? user.fullName[0].toUpperCase() : 'U'}
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="text-[11px] font-black uppercase tracking-widest text-indigo-300">
+                Official Game PIN
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-4xl sm:text-6xl font-black font-mono tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-indigo-300 drop-shadow-md">
+                {gamePin}
+              </span>
+              <button
+                onClick={copyPinToClipboard}
+                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md text-xs font-black text-white transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-lg"
+              >
+                {copiedPin ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4 text-indigo-200" />}
+                <span>{copiedPin ? 'Copied!' : 'Copy PIN'}</span>
+              </button>
+            </div>
           </div>
-          <div className="min-w-0">
-            <span className="text-[10px] text-indigo-200 block font-medium">Logged In As</span>
-            <span className="text-xs sm:text-sm font-extrabold text-white block truncate">
-              {user?.fullName || user?.username}
-            </span>
+
+          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-xl p-3 sm:p-3.5 rounded-2xl border border-white/15 shadow-xl sm:self-center">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 text-white flex items-center justify-center font-black text-base shadow-md shrink-0">
+              {user?.fullName ? user.fullName[0].toUpperCase() : 'U'}
+            </div>
+            <div className="min-w-0 pr-1">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-300 block">Logged In As</span>
+              <span className="text-xs sm:text-sm font-black text-white block truncate">
+                {user?.fullName || user?.username}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Room Info */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200 shadow-sm text-center space-y-5 sm:space-y-6">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200">
+      <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xl shadow-slate-200/40 text-center space-y-6">
+        <div className="space-y-2.5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 font-extrabold text-xs border border-emerald-500/20 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>You're in the Waiting Room!</span>
+            <span>You're in the Arena Lobby!</span>
           </div>
-          <h1 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
             {quiz.title}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto leading-relaxed">
@@ -301,37 +309,37 @@ export const ParticipantLobbyPage: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="p-6 rounded-2xl bg-indigo-50/60 border border-indigo-100 space-y-2">
-            <div className="flex items-center justify-center gap-1.5 py-1">
-              <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+          <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-indigo-50/90 via-violet-50/70 to-indigo-100/60 border border-indigo-200/80 shadow-inner space-y-3">
+            <div className="flex items-center justify-center gap-2 py-1">
+              <div className="w-3 h-3 rounded-full bg-indigo-600 animate-bounce shadow-md shadow-indigo-500/50" style={{ animationDelay: '0ms' }} />
+              <div className="w-3 h-3 rounded-full bg-violet-600 animate-bounce shadow-md shadow-violet-500/50" style={{ animationDelay: '150ms' }} />
+              <div className="w-3 h-3 rounded-full bg-purple-600 animate-bounce shadow-md shadow-purple-500/50" style={{ animationDelay: '300ms' }} />
             </div>
-            <h4 className="text-sm font-extrabold text-indigo-950">
+            <h4 className="text-base font-black text-indigo-950">
               Waiting for Quiz Host to launch the game...
             </h4>
-            <p className="text-xs text-indigo-700/80">
-              Keep this tab open! As soon as the host hits Start, your screen will transition automatically into Question 1.
+            <p className="text-xs sm:text-sm text-indigo-800/80 max-w-md mx-auto leading-relaxed">
+              Keep this screen open! As soon as the host hits <strong>Start Quiz</strong>, your screen will automatically launch into Question 1 with live audio-visual countdown.
             </p>
           </div>
         )}
 
         {/* Live Lobby Status & Leave Button */}
-        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            <span className="w-2 h-2 rounded-full bg-emerald-500 -ml-3" />
+        <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs border-t border-slate-100">
+          <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-800 font-bold shadow-sm">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 -ml-3.5" />
             <span>
-              {livePlayerCount} {livePlayerCount === 1 ? 'Player' : 'Players'} currently in room
+              {livePlayerCount} {livePlayerCount === 1 ? 'Player' : 'Players'} connected in room
             </span>
           </div>
 
           <button
             onClick={handleLeaveLobby}
             disabled={leaving}
-            className="w-full sm:w-auto px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100/80 text-rose-700 font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-2xl border border-rose-200/90 bg-rose-50/80 hover:bg-rose-100 text-rose-700 font-extrabold transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
           >
-            <LogOut className="w-3.5 h-3.5 text-rose-600" />
+            <LogOut className="w-4 h-4 text-rose-600" />
             <span>{leaving ? 'Leaving Lobby...' : 'Leave Waiting Room'}</span>
           </button>
         </div>
@@ -341,32 +349,35 @@ export const ParticipantLobbyPage: React.FC = () => {
       {quiz.mode === 'TEAM' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-extrabold text-slate-900">
-              Team Selection
+            <h2 className="text-lg font-black text-slate-900 tracking-tight">
+              Team Roster & Squad
             </h2>
             <span className="text-xs text-slate-500 font-medium">
-              Join teammates or form your own team
+              Join squad or enter your code
             </span>
           </div>
 
           {userTeam ? (
-            <div className="bg-white rounded-3xl p-6 border border-indigo-200 shadow-md space-y-4">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div>
+            <div className="bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-7 border border-indigo-200/80 shadow-xl shadow-indigo-500/5 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                <div className="space-y-0.5">
                   <span className="text-[10px] font-black uppercase tracking-wider text-indigo-600 block">
-                    Your Active Team
+                    Your Active Squad
                   </span>
-                  <h3 className="text-xl font-black text-slate-900">{userTeam.name}</h3>
+                  <h3 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                    <span>{userTeam.name}</span>
+                    <span className="text-lg">🛡️</span>
+                  </h3>
                 </div>
 
-                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-                  <span className="text-xs text-slate-500 font-semibold">Invite Code:</span>
-                  <span className="font-mono font-black text-sm text-indigo-600 tracking-wider">
+                <div className="flex items-center gap-2 bg-indigo-50/80 px-3.5 py-2 rounded-2xl border border-indigo-200/80 shadow-inner">
+                  <span className="text-xs text-indigo-700 font-bold">Invite Code:</span>
+                  <span className="font-mono font-black text-base text-indigo-900 tracking-wider">
                     {userTeam.code}
                   </span>
                   <button
                     onClick={copyCodeToClipboard}
-                    className="p-1 text-slate-400 hover:text-slate-800 transition"
+                    className="p-1.5 text-indigo-500 hover:text-indigo-800 transition rounded-lg hover:bg-white/60"
                     title="Copy Team Code"
                   >
                     {copiedCode ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -375,18 +386,24 @@ export const ParticipantLobbyPage: React.FC = () => {
               </div>
 
               {/* Members */}
-              <div className="space-y-2">
-                <span className="text-xs font-bold text-slate-500 block">
-                  Teammates Connected ({userTeam.members?.length || 0} / 3)
+              <div className="space-y-2.5">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-400 block">
+                  Teammates Ready ({userTeam.members?.length || 0} / 3)
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {userTeam.members?.map((m) => (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {userTeam.members?.map((m, idx) => (
                     <div
                       key={m.id}
-                      className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs"
+                      className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/90 flex items-center justify-between text-xs shadow-sm hover:border-indigo-300 transition-all"
                     >
-                      <span className="font-bold text-slate-900 truncate">{m.fullName}</span>
-                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                          {m.fullName ? m.fullName[0].toUpperCase() : 'P'}
+                        </div>
+                        <span className="font-extrabold text-slate-900 truncate">{m.fullName}</span>
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-black bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                         Ready
                       </span>
                     </div>
@@ -394,9 +411,12 @@ export const ParticipantLobbyPage: React.FC = () => {
                 </div>
               </div>
 
-              <p className="text-[11px] text-slate-400 font-medium">
-                💡 <strong>Team Rule:</strong> The first teammate to answer locks in the score for the entire team.
-              </p>
+              <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-900 font-medium flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>
+                  <strong>Team Rule:</strong> The first teammate to answer locks in the speed bonus for the whole squad.
+                </span>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

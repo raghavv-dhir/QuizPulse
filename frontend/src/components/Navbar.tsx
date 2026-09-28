@@ -40,19 +40,21 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <nav className="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+      <nav className="bg-white/80 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-50 shadow-sm transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Brand */}
-          <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 group">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-              <Zap className="w-4 h-4 sm:w-5 sm:h-5 fill-white text-white" />
+          <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 group-hover:scale-105 group-hover:rotate-3 transition-transform">
+              <Zap className="w-5 h-5 fill-white text-white" />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-base sm:text-lg font-extrabold tracking-tight bg-gradient-to-r from-slate-900 to-indigo-950 bg-clip-text text-transparent">
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-black tracking-tight bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 bg-clip-text text-transparent">
                 QuizPulse
               </span>
-              <span className="px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[9px] sm:text-[10px] font-bold tracking-wide uppercase border border-indigo-100">
-                Live
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider border border-emerald-200/70 shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 -ml-2.5" />
+                <span>Live</span>
               </span>
             </div>
           </Link>
@@ -61,16 +63,17 @@ export const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center gap-3">
             <button
               onClick={() => setIsPinModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200/60 transition"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-gradient-to-r from-indigo-50 to-violet-50 hover:from-indigo-100 hover:to-violet-100 border border-indigo-200/80 shadow-xs transition hover:scale-102 cursor-pointer"
             >
-              <Key className="w-3.5 h-3.5" />
-              <span>Enter PIN</span>
+              <Key className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Enter Game PIN</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-200/60 text-indigo-800 font-mono">#</span>
             </button>
 
             <a
               href="#explore-quizzes"
               onClick={handleExploreClick}
-              className="text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              className="text-xs font-bold text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-xl hover:bg-slate-100/80 transition cursor-pointer"
             >
               Explore Quizzes
             </a>
@@ -78,20 +81,20 @@ export const Navbar: React.FC = () => {
             {isAdmin && (
               <Link
                 to="/admin"
-                className="text-xs font-bold text-indigo-600 bg-indigo-50/70 border border-indigo-200 px-3 py-1.5 rounded-xl hover:bg-indigo-100/70 transition flex items-center gap-1.5"
+                className="text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 px-3.5 py-1.5 rounded-xl shadow-md shadow-slate-900/10 transition flex items-center gap-1.5 cursor-pointer"
               >
-                <Shield className="w-3.5 h-3.5 text-indigo-600" />
+                <Shield className="w-3.5 h-3.5 text-amber-400" />
                 <span>Host Dashboard</span>
               </Link>
             )}
 
             {user ? (
               <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/80 py-1 px-2.5 rounded-xl">
-                  <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                <div className="flex items-center gap-2 bg-white border border-slate-200/90 shadow-xs py-1 px-3 rounded-xl">
+                  <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center text-xs font-black shadow-xs">
                     {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
                   </div>
-                  <span className="text-xs font-bold text-slate-800">
+                  <span className="text-xs font-extrabold text-slate-800">
                     {user.fullName || user.username}
                   </span>
                 </div>
@@ -99,7 +102,7 @@ export const Navbar: React.FC = () => {
                 <button
                   onClick={logout}
                   title="Sign Out"
-                  className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition"
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -108,13 +111,13 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-2 pl-1">
                 <Link
                   to="/login"
-                  className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-3 py-2 rounded-lg transition"
+                  className="text-xs font-bold text-slate-700 hover:text-slate-900 px-3.5 py-2 rounded-xl hover:bg-slate-100 transition"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="btn-primary text-xs !h-9 !px-4"
+                  className="btn-primary text-xs !h-9 !px-4 shadow-md shadow-indigo-500/20"
                 >
                   Sign Up Free
                 </Link>
