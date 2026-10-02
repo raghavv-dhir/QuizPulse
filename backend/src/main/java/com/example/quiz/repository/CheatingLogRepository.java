@@ -11,4 +11,5 @@ public interface CheatingLogRepository extends JpaRepository<CheatingLog, Long> 
     List<CheatingLog> findByQuizIdOrderByOccurredAtDesc(Long quizId);
     List<CheatingLog> findByQuizIdAndUserId(Long quizId, Long userId);
     long countByQuizId(Long quizId);
+    long countByQuizIdAndUserId(Long quizId, Long userId);
 }

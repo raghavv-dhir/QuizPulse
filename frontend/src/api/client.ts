@@ -128,7 +128,7 @@ export const api = {
     getLeaderboard: (id: number) => request<LeaderboardEntry[]>(`/quizzes/${id}/leaderboard`),
     getResults: (id: number) => request<QuizResults>(`/quizzes/${id}/results`),
     reportCheating: (quizId: number, eventType: string, details?: string) =>
-      request<string>(`/quizzes/${quizId}/audit/cheating`, {
+      request<{ warningCount: number; disqualified: boolean; eventType: string; message: string }>(`/quizzes/${quizId}/audit/cheating`, {
         method: 'POST',
         body: JSON.stringify({ eventType, details }),
       }),

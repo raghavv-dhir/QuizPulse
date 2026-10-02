@@ -109,8 +109,8 @@ public class QuizController {
     }
 
     @PostMapping("/{id}/audit/cheating")
-    @Operation(summary = "Audit anti-cheating violations (tab switch, window blur, fullscreen exit)")
-    public ResponseEntity<ApiResponse<String>> recordCheating(
+    @Operation(summary = "Audit anti-cheating violations (tab switch, window blur, fullscreen exit, devtools, clipboard)")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> recordCheating(
             @PathVariable Long id,
             @RequestBody(required = false) Map<String, String> body,
             @AuthenticationPrincipal UserPrincipal principal) {
@@ -124,7 +124,7 @@ public class QuizController {
             eventType = CheatingEventType.TAB_SWITCH;
         }
 
-        cheatingAuditService.recordCheatingEvent(id, principal.getId(), eventType, details);
-        return ResponseEntity.ok(ApiResponse.success("Cheating event logged", null));
+        Map<String, Object> result = cheatingAuditService.recordCheatingEvent(id, principal.getId(), eventType, details);
+        return ResponseEntity.ok(ApiResponse.success("Cheating event logged", result));
     }
 }

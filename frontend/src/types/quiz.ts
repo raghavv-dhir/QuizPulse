@@ -181,6 +181,7 @@ export interface QuizState {
   currentQuestion?: PublicQuestion;
   serverQuestionStartTimeMs?: number;
   questionDurationMs?: number;
+  fullscreenRequired?: boolean;
   serverCurrentTimeMs?: number;
   remainingTimeMs?: number;
   alreadyAnswered: boolean;

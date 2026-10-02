@@ -627,6 +627,7 @@ public class QuizEngineService {
                 .mode(quiz.getMode())
                 .currentQuestionIndex(quiz.getCurrentQuestionIndex())
                 .totalQuestions(totalQuestions)
+                .fullscreenRequired(Boolean.TRUE.equals(quiz.getFullscreenRequired()))
                 .currentQuestion(currentPublicQuestion)
                 .serverQuestionStartTimeMs(serverQuestionStartTimeMs)
                 .questionDurationMs(questionDurationMs)

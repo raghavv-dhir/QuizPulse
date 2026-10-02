@@ -42,6 +42,7 @@ export const LiveQuizRoomPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [quizFinished, setQuizFinished] = useState(false);
+  const [isDisqualified, setIsDisqualified] = useState(false);
 
   const loadAuthoritativeState = async () => {
     try {
@@ -124,6 +125,10 @@ export const LiveQuizRoomPage: React.FC = () => {
         setIsPaused(true);
       } else if (event.eventType === 'QUIZ_RESUMED') {
         setIsPaused(false);
+      } else if (event.eventType === 'PARTICIPANT_DISQUALIFIED') {
+        if (event.payload?.userId === user?.id) {
+          setIsDisqualified(true);
+        }
       } else if (event.eventType === 'QUIZ_COMPLETED' || event.eventType === 'QUIZ_FINISHED') {
         setQuizFinished(true);
         setQuizState((prev) => (prev ? { ...prev, status: 'COMPLETED' } : null));
@@ -135,7 +140,7 @@ export const LiveQuizRoomPage: React.FC = () => {
   });
 
   const handleSelectAndSubmit = async (optionId: number) => {
-    if (isAnswerLocked || submitting || questionEndedData || isPaused) return;
+    if (isDisqualified || isAnswerLocked || submitting || questionEndedData || isPaused) return;
 
     try {
       setSubmitting(true);
@@ -208,7 +213,11 @@ export const LiveQuizRoomPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-6 space-y-4 sm:space-y-6">
-      <CheatingDetector quizId={quizId} />
+      <CheatingDetector
+        quizId={quizId}
+        fullscreenRequired={quizState.fullscreenRequired}
+        onTerminated={() => setIsDisqualified(true)}
+      />
 
       {/* Top Header Bar */}
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-200">

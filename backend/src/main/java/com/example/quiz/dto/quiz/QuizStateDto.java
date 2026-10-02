@@ -24,6 +24,7 @@ public class QuizStateDto {
     private QuizMode mode;
     private Integer currentQuestionIndex;
     private Integer totalQuestions;
+    private Boolean fullscreenRequired;
 
     private PublicQuestionDto currentQuestion;
     private Long serverQuestionStartTimeMs;

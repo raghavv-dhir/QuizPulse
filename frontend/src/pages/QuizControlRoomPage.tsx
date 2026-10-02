@@ -112,7 +112,9 @@ export const QuizControlRoomPage: React.FC = () => {
       } else if (
         event.eventType === 'PARTICIPANT_JOINED' ||
         event.eventType === 'PARTICIPANT_LEFT' ||
-        event.eventType === 'TEAM_CREATED'
+        event.eventType === 'TEAM_CREATED' ||
+        event.eventType === 'PARTICIPANT_CHEATING_ALERT' ||
+        event.eventType === 'PARTICIPANT_DISQUALIFIED'
       ) {
         loadData();
       }
