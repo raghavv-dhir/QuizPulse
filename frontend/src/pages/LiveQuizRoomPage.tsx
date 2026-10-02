@@ -13,6 +13,7 @@ import { CountdownTimer } from '../components/CountdownTimer';
 import { SpeedPointsGauge } from '../components/SpeedPointsGauge';
 import { TeamStatusWidget } from '../components/TeamStatusWidget';
 import { CheatingDetector } from '../components/CheatingDetector';
+import { PreTestBriefingModal } from '../components/PreTestBriefingModal';
 import {
   Check,
   X,
@@ -43,6 +44,9 @@ export const LiveQuizRoomPage: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [quizFinished, setQuizFinished] = useState(false);
   const [isDisqualified, setIsDisqualified] = useState(false);
+  const [showBriefingModal, setShowBriefingModal] = useState<boolean>(() => {
+    return sessionStorage.getItem(`quiz_${quizId}_briefing_cleared`) !== 'true';
+  });
 
   const loadAuthoritativeState = async () => {
     try {
@@ -217,6 +221,14 @@ export const LiveQuizRoomPage: React.FC = () => {
         quizId={quizId}
         fullscreenRequired={quizState.fullscreenRequired}
         onTerminated={() => setIsDisqualified(true)}
+      />
+
+      {/* Mandatory Pre-Test Briefing Guard */}
+      <PreTestBriefingModal
+        quizId={quizId}
+        quizTitle={quizState.title}
+        isOpen={showBriefingModal}
+        onCleared={() => setShowBriefingModal(false)}
       />
 
       {/* Top Header Bar */}

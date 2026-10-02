@@ -21,6 +21,7 @@ import {
 
 import { toGamePin, parsePinToId } from '../utils/gamePin';
 import { TeamPromptModal } from '../components/TeamPromptModal';
+import { PreTestBriefingModal } from '../components/PreTestBriefingModal';
 
 export const ParticipantLobbyPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +32,11 @@ export const ParticipantLobbyPage: React.FC = () => {
   const [quiz, setQuiz] = useState<QuizDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Mandatory Pre-test Briefing State
+  const [showBriefingModal, setShowBriefingModal] = useState<boolean>(() => {
+    return sessionStorage.getItem(`quiz_${quizId}_briefing_cleared`) !== 'true';
+  });
 
   // Team state
   const [userTeam, setUserTeam] = useState<Team | null>(null);
@@ -387,9 +393,17 @@ export const ParticipantLobbyPage: React.FC = () => {
 
               {/* Members */}
               <div className="space-y-2.5">
-                <span className="text-xs font-black uppercase tracking-wider text-slate-400 block">
-                  Teammates Ready ({userTeam.members?.length || 0} / 3)
-                </span>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-400 block">
+                    Squad Members ({userTeam.members?.length || 0} / 3)
+                  </span>
+                  {userTeam.members && userTeam.members.length === 1 && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      1-Member Solo Squad (Fully Eligible to Compete)
+                    </span>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {userTeam.members?.map((m, idx) => (
                     <div
@@ -411,10 +425,10 @@ export const ParticipantLobbyPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-900 font-medium flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+              <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-200/80 text-[11px] text-indigo-900 font-medium flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
                 <span>
-                  <strong>Team Rule:</strong> The first teammate to answer locks in the speed bonus for the whole squad.
+                  <strong>Team Eligibility:</strong> Teams of 1 to 3 members are fully eligible to play. You can compete solo as a 1-member squad or invite teammates using your code.
                 </span>
               </div>
             </div>
@@ -485,6 +499,16 @@ export const ParticipantLobbyPage: React.FC = () => {
           onSuccess={handleTeamSuccess}
           onCancel={handlePromptCancel}
           isBlocking={true}
+        />
+      )}
+
+      {/* Mandatory Pre-Test & Anti-Cheating Briefing Modal (30s countdown & agreement) */}
+      {quiz && (
+        <PreTestBriefingModal
+          quizId={quizId}
+          quizTitle={quiz.title}
+          isOpen={showBriefingModal}
+          onCleared={() => setShowBriefingModal(false)}
         />
       )}
     </div>
