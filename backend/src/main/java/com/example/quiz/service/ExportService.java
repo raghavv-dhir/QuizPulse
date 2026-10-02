@@ -60,6 +60,10 @@ public class ExportService {
 
     private String escapeCsv(String value) {
         if (value == null) return "\"\"";
-        return "\"" + value.replace("\"", "\"\"") + "\"";
+        String sanitized = value;
+        if (!sanitized.isEmpty() && (sanitized.startsWith("=") || sanitized.startsWith("+") || sanitized.startsWith("-") || sanitized.startsWith("@") || sanitized.startsWith("\t") || sanitized.startsWith("\r"))) {
+            sanitized = "'" + sanitized;
+        }
+        return "\"" + sanitized.replace("\"", "\"\"") + "\"";
     }
 }

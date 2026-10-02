@@ -31,10 +31,13 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
+        String cleanUsername = request.getUsername().trim().toLowerCase();
+        String cleanEmail = request.getEmail().trim().toLowerCase();
+
+        if (userRepository.existsByUsername(cleanUsername)) {
             throw new BadRequestException("Username is already taken");
         }
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(cleanEmail)) {
             throw new BadRequestException("Email is already in use");
         }
 
@@ -42,12 +45,12 @@ public class AuthService {
         Role role = Role.ROLE_PARTICIPANT;
         if (userRepository.count() == 0) {
             role = Role.ROLE_ADMIN;
-            log.info("First registered user detected: granting ROLE_ADMIN to {}", request.getUsername());
+            log.info("First registered user detected: granting ROLE_ADMIN to {}", cleanUsername);
         }
 
         User user = User.builder()
-                .username(request.getUsername().trim().toLowerCase())
-                .email(request.getEmail().trim().toLowerCase())
+                .username(cleanUsername)
+                .email(cleanEmail)
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName().trim())
                 .role(role)

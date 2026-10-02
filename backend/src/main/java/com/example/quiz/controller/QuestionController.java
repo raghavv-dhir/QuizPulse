@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.example.quiz.security.UserPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +25,12 @@ public class QuestionController {
 
     @GetMapping("/api/quizzes/{quizId}/questions")
     @Operation(summary = "Get list of questions for a quiz")
-    public ResponseEntity<ApiResponse<List<QuestionDto>>> getQuestions(@PathVariable Long quizId) {
-        List<QuestionDto> questions = questionService.getQuestionsForQuiz(quizId);
+    public ResponseEntity<ApiResponse<List<QuestionDto>>> getQuestions(
+            @PathVariable Long quizId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        boolean isAdmin = principal != null && principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        List<QuestionDto> questions = questionService.getQuestionsForQuiz(quizId, isAdmin);
         return ResponseEntity.ok(ApiResponse.success(questions));
     }
 

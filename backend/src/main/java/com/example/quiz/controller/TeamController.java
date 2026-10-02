@@ -56,8 +56,12 @@ public class TeamController {
     @Operation(summary = "Add a specific user to a team (Admin/Captain)")
     public ResponseEntity<ApiResponse<TeamDto>> addMember(
             @PathVariable Long teamId,
-            @Valid @RequestBody AddMemberRequest request) {
-        TeamDto team = teamService.addMemberToTeam(teamId, request.getUserId());
+            @Valid @RequestBody AddMemberRequest request,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        boolean isAdmin = principal != null && principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        Long callerId = principal != null ? principal.getId() : null;
+        TeamDto team = teamService.addMemberToTeam(teamId, request.getUserId(), callerId, isAdmin);
         return ResponseEntity.ok(ApiResponse.success("Member added to team", team));
     }
 
@@ -65,8 +69,12 @@ public class TeamController {
     @Operation(summary = "Remove a user from a team")
     public ResponseEntity<ApiResponse<String>> removeMember(
             @PathVariable Long teamId,
-            @PathVariable Long userId) {
-        teamService.removeMemberFromTeam(teamId, userId);
+            @PathVariable Long userId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        boolean isAdmin = principal != null && principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        Long callerId = principal != null ? principal.getId() : null;
+        teamService.removeMemberFromTeam(teamId, userId, callerId, isAdmin);
         return ResponseEntity.ok(ApiResponse.success("Member removed from team", null));
     }
 }

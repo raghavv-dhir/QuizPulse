@@ -21,7 +21,14 @@ public class JwtTokenProvider {
     public JwtTokenProvider(
             @Value("${quiz.jwt.secret}") String jwtSecret,
             @Value("${quiz.jwt.expiration-ms:86400000}") long jwtExpirationMs) {
-        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        byte[] secretBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        if (secretBytes.length < 32) {
+            throw new IllegalArgumentException("JWT secret key must be at least 256 bits (32 bytes) long");
+        }
+        if (jwtSecret.contains("ChangeThisInProduction") || jwtSecret.contains("YourSuperSecret")) {
+            log.warn("SECURITY WARNING: Insecure default JWT secret detected. Please set APP_JWT_SECRET environment variable in production.");
+        }
+        this.key = Keys.hmacShaKeyFor(secretBytes);
         this.jwtExpirationMs = jwtExpirationMs;
     }
 

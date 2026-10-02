@@ -5,6 +5,7 @@ import com.example.quiz.entity.Question;
 import com.example.quiz.entity.QuestionOption;
 import com.example.quiz.entity.Quiz;
 import com.example.quiz.entity.enums.QuestionType;
+import com.example.quiz.entity.enums.QuizStatus;
 import com.example.quiz.exception.BadRequestException;
 import com.example.quiz.exception.ResourceNotFoundException;
 import com.example.quiz.repository.QuestionOptionRepository;
@@ -131,17 +132,28 @@ public class QuestionService {
 
     @Transactional(readOnly = true)
     public List<QuestionDto> getQuestionsForQuiz(Long quizId) {
+        return getQuestionsForQuiz(quizId, false);
+    }
+
+    @Transactional(readOnly = true)
+    public List<QuestionDto> getQuestionsForQuiz(Long quizId, boolean isAdmin) {
+        Quiz quiz = quizRepository.findById(quizId).orElse(null);
+        boolean includeAnswers = isAdmin || (quiz != null && quiz.getStatus() == QuizStatus.COMPLETED);
         return questionRepository.findByQuizIdOrderByDisplayOrderAsc(quizId).stream()
-                .map(this::mapToDto)
+                .map(q -> mapToDto(q, includeAnswers))
                 .collect(Collectors.toList());
     }
 
     public QuestionDto mapToDto(Question question) {
+        return mapToDto(question, true);
+    }
+
+    public QuestionDto mapToDto(Question question, boolean includeCorrectAnswers) {
         List<QuestionOptionDto> options = question.getOptions().stream()
                 .map(o -> QuestionOptionDto.builder()
                         .id(o.getId())
                         .optionText(o.getOptionText())
-                        .isCorrect(o.getIsCorrect())
+                        .isCorrect(includeCorrectAnswers ? o.getIsCorrect() : null)
                         .displayOrder(o.getDisplayOrder())
                         .build())
                 .collect(Collectors.toList());

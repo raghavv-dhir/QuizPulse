@@ -45,8 +45,12 @@ public class QuizController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get detailed information about a specific quiz")
-    public ResponseEntity<ApiResponse<QuizDetailDto>> getQuizById(@PathVariable Long id) {
-        QuizDetailDto quiz = quizService.getQuizById(id);
+    public ResponseEntity<ApiResponse<QuizDetailDto>> getQuizById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        boolean isAdmin = principal != null && principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        QuizDetailDto quiz = quizService.getQuizById(id, isAdmin);
         return ResponseEntity.ok(ApiResponse.success(quiz));
     }
 
@@ -108,10 +112,11 @@ public class QuizController {
     @Operation(summary = "Audit anti-cheating violations (tab switch, window blur, fullscreen exit)")
     public ResponseEntity<ApiResponse<String>> recordCheating(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body,
+            @RequestBody(required = false) Map<String, String> body,
             @AuthenticationPrincipal UserPrincipal principal) {
-        String event = body.getOrDefault("eventType", "TAB_SWITCH");
-        String details = body.getOrDefault("details", "");
+        Map<String, String> payload = body != null ? body : Map.of();
+        String event = payload.getOrDefault("eventType", "TAB_SWITCH");
+        String details = payload.getOrDefault("details", "");
         CheatingEventType eventType;
         try {
             eventType = CheatingEventType.valueOf(event.toUpperCase());

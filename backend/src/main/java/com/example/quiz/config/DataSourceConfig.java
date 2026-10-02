@@ -68,7 +68,8 @@ public class DataSourceConfig {
                     }
                 }
 
-                log.info("Configured JDBC URL: {} (user: {})", jdbcUrl, username);
+                String safeUrlForLogging = jdbcUrl.contains("?") ? jdbcUrl.substring(0, jdbcUrl.indexOf("?")) : jdbcUrl;
+                log.info("Configured JDBC URL: {} (user: {})", safeUrlForLogging, username);
                 config.setJdbcUrl(jdbcUrl);
                 config.setUsername(username);
                 config.setPassword(password);

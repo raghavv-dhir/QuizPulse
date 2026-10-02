@@ -118,9 +118,14 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public QuizDetailDto getQuizById(Long id) {
+        return getQuizById(id, false);
+    }
+
+    @Transactional(readOnly = true)
+    public QuizDetailDto getQuizById(Long id, boolean isAdmin) {
         Quiz quiz = quizRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found: " + id));
-        return mapToDetailDto(quiz);
+        return mapToDetailDto(quiz, isAdmin);
     }
 
     @Transactional
@@ -198,7 +203,11 @@ public class QuizService {
     }
 
     public QuizDetailDto mapToDetailDto(Quiz quiz) {
-        var questions = questionService.getQuestionsForQuiz(quiz.getId());
+        return mapToDetailDto(quiz, true);
+    }
+
+    public QuizDetailDto mapToDetailDto(Quiz quiz, boolean isAdmin) {
+        var questions = questionService.getQuestionsForQuiz(quiz.getId(), isAdmin);
         var teams = teamService.getTeamsForQuiz(quiz.getId());
         int participantCount = (int) participantRepository.countByQuizId(quiz.getId());
 

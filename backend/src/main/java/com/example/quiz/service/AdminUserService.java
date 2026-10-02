@@ -92,6 +92,11 @@ public class AdminUserService {
         user.setEmail(newEmail);
         user.setFullName(request.getFullName().trim());
         if (request.getRole() != null) {
+            if (user.getRole() == Role.ROLE_ADMIN && request.getRole() != Role.ROLE_ADMIN) {
+                if (userRepository.countByRole(Role.ROLE_ADMIN) <= 1) {
+                    throw new BadRequestException("Cannot demote the only remaining administrator account");
+                }
+            }
             user.setRole(request.getRole());
         }
 
@@ -112,9 +117,13 @@ public class AdminUserService {
         if (userId.equals(currentAdminId)) {
             throw new BadRequestException("You cannot delete your own admin account while logged in");
         }
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found: " + userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        if (user.getRole() == Role.ROLE_ADMIN && userRepository.countByRole(Role.ROLE_ADMIN) <= 1) {
+            throw new BadRequestException("Cannot delete the only remaining administrator account");
         }
+
         userRepository.deleteById(userId);
         log.info("Admin {} deleted user {}", currentAdminId, userId);
     }

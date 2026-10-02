@@ -82,10 +82,22 @@ public class TeamService {
 
     @Transactional
     public TeamDto addMemberToTeam(Long teamId, Long userId) {
+        return addMemberToTeam(teamId, userId, userId, true);
+    }
+
+    @Transactional
+    public TeamDto addMemberToTeam(Long teamId, Long userId, Long callerUserId, boolean isAdmin) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + teamId));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        if (!isAdmin && callerUserId != null && !callerUserId.equals(userId)) {
+            boolean callerIsMember = teamMemberRepository.existsByTeamIdAndUserId(teamId, callerUserId);
+            if (!callerIsMember) {
+                throw new BadRequestException("Unauthorized: You can only add yourself or you must be an existing team member");
+            }
+        }
 
         addMemberInternal(team, user);
         TeamDto dto = mapToDto(team);
@@ -95,6 +107,9 @@ public class TeamService {
 
     @Transactional
     public TeamDto joinTeamByCode(Long quizId, String code, Long userId) {
+        if (code == null || code.trim().isEmpty()) {
+            throw new BadRequestException("Team code is required");
+        }
         Team team = teamRepository.findByQuizIdAndCode(quizId, code.trim().toUpperCase())
                 .orElseThrow(() -> new ResourceNotFoundException("No team found with code: " + code));
 
@@ -146,8 +161,20 @@ public class TeamService {
 
     @Transactional
     public void removeMemberFromTeam(Long teamId, Long userId) {
+        removeMemberFromTeam(teamId, userId, userId, true);
+    }
+
+    @Transactional
+    public void removeMemberFromTeam(Long teamId, Long userId, Long callerUserId, boolean isAdmin) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + teamId));
+
+        if (!isAdmin && callerUserId != null && !callerUserId.equals(userId)) {
+            boolean callerIsMember = teamMemberRepository.existsByTeamIdAndUserId(teamId, callerUserId);
+            if (!callerIsMember) {
+                throw new BadRequestException("Unauthorized: You can only remove yourself or you must be a team member/admin");
+            }
+        }
 
         teamMemberRepository.deleteByTeamIdAndUserId(teamId, userId);
 
