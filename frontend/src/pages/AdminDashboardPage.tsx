@@ -143,10 +143,10 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       setExemplarLoading(true);
       const created = await api.admin.createQuiz({
-        title: 'Global Tech & Science Speed Showdown 2026',
-        description: 'High-energy live quiz testing computer science, algorithms, networking, and modern tech.',
+        title: 'AARANYA – Sustainability & Social Responsibility Quiz',
+        description: 'Roll for a Sustainable Future – Sustainability Escape Room. Round 1: Sustainability & Social Responsibility Quiz (20 MCQs | Team Size: 1-4).',
         mode: 'TEAM',
-        defaultQuestionDurationSeconds: 15,
+        defaultQuestionDurationSeconds: 45,
         maxScorePerQuestion: 1000,
         scoringStrategy: 'LINEAR',
         negativeMarking: false,
@@ -155,70 +155,250 @@ export const AdminDashboardPage: React.FC = () => {
         allowReconnection: true,
       });
 
-      const sampleQuestions = [
+      const aaranyaQuestions = [
         {
-          questionText: 'What is the worst-case time complexity of quicksort when using deterministic last-element pivoting on already-sorted input?',
-          durationSeconds: 15,
+          questionText: 'Which of the following best describes sustainability?',
+          durationSeconds: 45,
           maxScore: 1000,
           displayOrder: 1,
           options: [
-            { optionText: 'O(n log n)', isCorrect: false, displayOrder: 1 },
-            { optionText: 'O(n²)', isCorrect: true, displayOrder: 2 },
-            { optionText: 'O(n)', isCorrect: false, displayOrder: 3 },
-            { optionText: 'O(log n)', isCorrect: false, displayOrder: 4 },
+            { optionText: 'Using resources without considering the future', isCorrect: false, displayOrder: 1 },
+            { optionText: 'Meeting present needs while protecting resources for future generations', isCorrect: true, displayOrder: 2 },
+            { optionText: 'Focusing only on economic growth', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Avoiding all forms of development', isCorrect: false, displayOrder: 4 },
           ],
         },
         {
-          questionText: 'Which HTTP status code is standardized for client-side API Rate Limiting violations?',
-          durationSeconds: 15,
+          questionText: 'What is the main purpose of the Sustainable Development Goals (SDGs)?',
+          durationSeconds: 45,
           maxScore: 1000,
           displayOrder: 2,
           options: [
-            { optionText: '403 Forbidden', isCorrect: false, displayOrder: 1 },
-            { optionText: '429 Too Many Requests', isCorrect: true, displayOrder: 2 },
-            { optionText: '503 Service Unavailable', isCorrect: false, displayOrder: 3 },
-            { optionText: '408 Request Timeout', isCorrect: false, displayOrder: 4 },
+            { optionText: 'To guide global efforts toward social, economic and environmental development', isCorrect: true, displayOrder: 1 },
+            { optionText: 'To promote only industrial development', isCorrect: false, displayOrder: 2 },
+            { optionText: 'To increase consumption of natural resources', isCorrect: false, displayOrder: 3 },
+            { optionText: 'To replace national governments', isCorrect: false, displayOrder: 4 },
           ],
         },
         {
-          questionText: 'What consensus protocol is natively utilized by etcd and HashiCorp Consul to coordinate distributed cluster state?',
-          durationSeconds: 15,
+          questionText: 'Which practice directly helps reduce waste?',
+          durationSeconds: 45,
           maxScore: 1000,
           displayOrder: 3,
           options: [
-            { optionText: 'Paxos', isCorrect: false, displayOrder: 1 },
-            { optionText: 'Raft', isCorrect: true, displayOrder: 2 },
-            { optionText: 'Proof of Stake', isCorrect: false, displayOrder: 3 },
-            { optionText: 'Two-Phase Commit', isCorrect: false, displayOrder: 4 },
+            { optionText: 'Single-use consumption', isCorrect: false, displayOrder: 1 },
+            { optionText: 'Throwing recyclable materials with general waste', isCorrect: false, displayOrder: 2 },
+            { optionText: 'Reusing products whenever possible', isCorrect: true, displayOrder: 3 },
+            { optionText: 'Buying more packaging', isCorrect: false, displayOrder: 4 },
           ],
         },
         {
-          questionText: 'In PostgreSQL, which index type is specifically optimized for full-text search and array containment queries?',
-          durationSeconds: 15,
+          questionText: 'What does responsible consumption mean?',
+          durationSeconds: 45,
           maxScore: 1000,
           displayOrder: 4,
           options: [
-            { optionText: 'B-Tree', isCorrect: false, displayOrder: 1 },
-            { optionText: 'GIN (Generalized Inverted Index)', isCorrect: true, displayOrder: 2 },
-            { optionText: 'Hash Index', isCorrect: false, displayOrder: 3 },
-            { optionText: 'BRIN (Block Range Index)', isCorrect: false, displayOrder: 4 },
+            { optionText: 'Buying as much as possible', isCorrect: false, displayOrder: 1 },
+            { optionText: 'Making choices that consider environmental and social impacts', isCorrect: true, displayOrder: 2 },
+            { optionText: 'Choosing products only by appearance', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Avoiding all consumer products', isCorrect: false, displayOrder: 4 },
           ],
         },
         {
-          questionText: 'During a standard TCP 3-way handshake, what packet does the server reply with upon receiving the client SYN?',
-          durationSeconds: 15,
+          questionText: 'Which of these is an example of social responsibility?',
+          durationSeconds: 45,
           maxScore: 1000,
           displayOrder: 5,
           options: [
-            { optionText: 'SYN-ACK', isCorrect: true, displayOrder: 1 },
-            { optionText: 'ACK only', isCorrect: false, displayOrder: 2 },
-            { optionText: 'FIN-ACK', isCorrect: false, displayOrder: 3 },
-            { optionText: 'RST packet', isCorrect: false, displayOrder: 4 },
+            { optionText: 'Ignoring community needs', isCorrect: false, displayOrder: 1 },
+            { optionText: 'Supporting actions that benefit society', isCorrect: true, displayOrder: 2 },
+            { optionText: 'Increasing unnecessary waste', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Using resources without limits', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'CSR stands for:',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 6,
+          options: [
+            { optionText: 'Corporate Social Responsibility', isCorrect: true, displayOrder: 1 },
+            { optionText: 'Corporate Sustainability Regulation', isCorrect: false, displayOrder: 2 },
+            { optionText: 'Community Service Resource', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Corporate Safety Requirement', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'ESG commonly refers to:',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 7,
+          options: [
+            { optionText: 'Economy, Society and Growth', isCorrect: false, displayOrder: 1 },
+            { optionText: 'Environment, Social and Governance', isCorrect: true, displayOrder: 2 },
+            { optionText: 'Energy, Sustainability and Greenery', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Environment, Safety and Growth', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'Which action is most likely to conserve water?',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 8,
+          options: [
+            { optionText: 'Leaving taps running unnecessarily', isCorrect: false, displayOrder: 1 },
+            { optionText: 'Fixing leaking taps and pipes', isCorrect: true, displayOrder: 2 },
+            { optionText: 'Washing vehicles daily with excess water', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Using fresh water for every cleaning task', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'Which energy choice generally has a lower environmental impact?',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 9,
+          options: [
+            { optionText: 'Solar energy', isCorrect: true, displayOrder: 1 },
+            { optionText: 'Uncontrolled fossil-fuel use', isCorrect: false, displayOrder: 2 },
+            { optionText: 'Wasting electricity', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Leaving lights on continuously', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'What is the main benefit of recycling?',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 10,
+          options: [
+            { optionText: 'It increases landfill waste', isCorrect: false, displayOrder: 1 },
+            { optionText: 'It helps recover materials and reduce waste', isCorrect: true, displayOrder: 2 },
+            { optionText: 'It always eliminates pollution completely', isCorrect: false, displayOrder: 3 },
+            { optionText: 'It encourages single-use products', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'A company that considers environmental and social impacts while making business decisions is demonstrating:',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 11,
+          options: [
+            { optionText: 'Responsible business practices', isCorrect: true, displayOrder: 1 },
+            { optionText: 'Resource wastage', isCorrect: false, displayOrder: 2 },
+            { optionText: 'Unplanned consumption', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Environmental neglect', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'Which is the most responsible choice when buying a product?',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 12,
+          options: [
+            { optionText: 'Choose only the most heavily packaged option', isCorrect: false, displayOrder: 1 },
+            { optionText: 'Consider durability, need and environmental impact', isCorrect: true, displayOrder: 2 },
+            { optionText: 'Buy multiple products even when unnecessary', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Ignore how the product was produced', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'What is the purpose of planting and maintaining trees in urban areas?',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 13,
+          options: [
+            { optionText: 'To increase waste generation', isCorrect: false, displayOrder: 1 },
+            { optionText: 'To support green spaces and environmental quality', isCorrect: true, displayOrder: 2 },
+            { optionText: 'To reduce biodiversity', isCorrect: false, displayOrder: 3 },
+            { optionText: 'To increase resource consumption', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'Which option represents an ethical environmental choice?',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 14,
+          options: [
+            { optionText: 'Dumping waste in an open area', isCorrect: false, displayOrder: 1 },
+            { optionText: 'Disposing waste responsibly and reducing unnecessary consumption', isCorrect: true, displayOrder: 2 },
+            { optionText: 'Wasting water because it is available', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Ignoring pollution from daily activities', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'Which skill is most important when making a sustainable decision?',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 15,
+          options: [
+            { optionText: 'Ignoring long-term consequences', isCorrect: false, displayOrder: 1 },
+            { optionText: 'Critical thinking about environmental and social impacts', isCorrect: true, displayOrder: 2 },
+            { optionText: 'Choosing the fastest option every time', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Avoiding teamwork', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'Which of the following can help reduce plastic waste?',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 16,
+          options: [
+            { optionText: 'Carrying a reusable bottle or bag', isCorrect: true, displayOrder: 1 },
+            { optionText: 'Increasing use of disposable items', isCorrect: false, displayOrder: 2 },
+            { optionText: 'Using more plastic packaging', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Throwing plastic into open spaces', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'What does biodiversity refer to?',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 17,
+          options: [
+            { optionText: 'Variety of living organisms in an area', isCorrect: true, displayOrder: 1 },
+            { optionText: 'Amount of waste in a city', isCorrect: false, displayOrder: 2 },
+            { optionText: 'Number of buildings in a region', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Total energy consumed by businesses', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'Which action best demonstrates teamwork in a sustainability challenge?',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 18,
+          options: [
+            { optionText: 'One member makes every decision', isCorrect: false, displayOrder: 1 },
+            { optionText: 'Team members communicate and contribute to solving the problem', isCorrect: true, displayOrder: 2 },
+            { optionText: 'Members work against each other', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Members avoid sharing information', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: 'Why is long-term thinking important for sustainability?',
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 19,
+          options: [
+            { optionText: 'Environmental and social effects can continue beyond the immediate decision', isCorrect: true, displayOrder: 1 },
+            { optionText: 'It makes every decision slower', isCorrect: false, displayOrder: 2 },
+            { optionText: 'It removes the need for responsible choices', isCorrect: false, displayOrder: 3 },
+            { optionText: 'It focuses only on short-term profit', isCorrect: false, displayOrder: 4 },
+          ],
+        },
+        {
+          questionText: "Which statement best reflects the theme 'Roll the dice. Make the choice. Save the future.'?",
+          durationSeconds: 45,
+          maxScore: 1000,
+          displayOrder: 20,
+          options: [
+            { optionText: 'Every decision can have consequences for the future', isCorrect: true, displayOrder: 1 },
+            { optionText: 'Sustainability depends only on luck', isCorrect: false, displayOrder: 2 },
+            { optionText: 'Individual choices have no environmental impact', isCorrect: false, displayOrder: 3 },
+            { optionText: 'Sustainable decisions are unnecessary', isCorrect: false, displayOrder: 4 },
           ],
         },
       ];
 
-      for (const q of sampleQuestions) {
+      for (const q of aaranyaQuestions) {
         await api.questions.add(created.id, q);
       }
 
@@ -500,10 +680,10 @@ export const AdminDashboardPage: React.FC = () => {
               <button
                 onClick={handleCreateExemplarQuiz}
                 disabled={exemplarLoading}
-                className="btn-secondary text-xs shadow-sm !h-10"
+                className="btn-secondary text-xs shadow-sm !h-10 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border-emerald-200"
               >
-                <Sparkles className="w-4 h-4 text-indigo-600" />
-                <span>{exemplarLoading ? 'Generating...' : '⚡ Quick Demo Quiz'}</span>
+                <Sparkles className="w-4 h-4 text-emerald-600" />
+                <span>{exemplarLoading ? 'Generating Aaranya Quiz...' : '🌿 Load Aaranya Quiz (20 MCQs)'}</span>
               </button>
 
               <button
@@ -640,10 +820,11 @@ export const AdminDashboardPage: React.FC = () => {
               </p>
               <button
                 onClick={handleCreateExemplarQuiz}
-                className="btn-primary text-xs !h-10 mx-auto"
+                disabled={exemplarLoading}
+                className="btn-primary text-xs !h-10 mx-auto bg-emerald-600 hover:bg-emerald-700 border-emerald-600 shadow-md shadow-emerald-600/20"
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Generate Quick Demo Quiz</span>
+                <Sparkles className="w-4 h-4 text-emerald-100" />
+                <span>{exemplarLoading ? 'Generating Aaranya Quiz...' : '🌿 Load Aaranya Sustainability Quiz (20 MCQs)'}</span>
               </button>
             </div>
           ) : (
