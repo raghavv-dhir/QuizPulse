@@ -57,9 +57,10 @@ public class QuizEngineService {
     private final PlatformTransactionManager transactionManager;
 
     private TransactionTemplate transactionTemplate;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(8);
     private final Map<Long, ScheduledFuture<?>> scheduledQuestionFutures = new ConcurrentHashMap<>();
     private final Map<Long, ScheduledFuture<?>> scheduledIntermissionFutures = new ConcurrentHashMap<>();
+    private final Map<Long, ScheduledFuture<?>> pendingLeaderboardBroadcasts = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -333,6 +334,10 @@ public class QuizEngineService {
     public void cancelTimers(Long quizId) {
         cancelQuestionTimer(quizId);
         cancelIntermissionTimer(quizId);
+        ScheduledFuture<?> lbFuture = pendingLeaderboardBroadcasts.remove(quizId);
+        if (lbFuture != null) {
+            lbFuture.cancel(false);
+        }
     }
 
     private void cancelQuestionTimer(Long quizId) {
@@ -347,6 +352,29 @@ public class QuizEngineService {
         if (future != null) {
             future.cancel(false);
         }
+    }
+
+    private void triggerDebouncedLeaderboardBroadcast(Long quizId) {
+        pendingLeaderboardBroadcasts.compute(quizId, (key, existingFuture) -> {
+            if (existingFuture != null && !existingFuture.isDone()) {
+                return existingFuture;
+            }
+            return scheduler.schedule(() -> {
+                try {
+                    if (!quizRepository.existsById(quizId)) {
+                        return;
+                    }
+                    List<LeaderboardEntryDto> leaderboard = leaderboardService.calculateLeaderboard(quizId);
+                    webSocketService.broadcastQuizEvent(quizId, "LEADERBOARD_UPDATED", leaderboard);
+                } catch (ResourceNotFoundException e) {
+                    log.debug("Quiz {} was deleted or completed before leaderboard broadcast", quizId);
+                } catch (Exception e) {
+                    log.error("Failed to broadcast debounced leaderboard for quiz {}", quizId, e);
+                } finally {
+                    pendingLeaderboardBroadcasts.remove(quizId);
+                }
+            }, 500, TimeUnit.MILLISECONDS);
+        });
     }
 
     @Transactional
@@ -468,9 +496,8 @@ public class QuizEngineService {
                         .build();
                 webSocketService.sendTeamEvent(quizId, team.getId(), "TEAM_ANSWER_LOCKED", teamStatus);
 
-                // Broadcast updated live leaderboard
-                List<LeaderboardEntryDto> leaderboard = leaderboardService.calculateLeaderboard(quizId);
-                webSocketService.broadcastQuizEvent(quizId, "LEADERBOARD_UPDATED", leaderboard);
+                // Broadcast updated live leaderboard (debounced asynchronously for high concurrency)
+                triggerDebouncedLeaderboardBroadcast(quizId);
 
                 return AnswerResultDto.builder()
                         .questionId(questionId)
@@ -513,9 +540,8 @@ public class QuizEngineService {
                 log.info("Individual answer by user {} on question {}. Correct: {}, ResponseTime: {}ms, Score: {}",
                         participant.getUser().getUsername(), questionId, isCorrect, responseTimeMs, score);
 
-                // Broadcast updated live leaderboard
-                List<LeaderboardEntryDto> leaderboard = leaderboardService.calculateLeaderboard(quizId);
-                webSocketService.broadcastQuizEvent(quizId, "LEADERBOARD_UPDATED", leaderboard);
+                // Broadcast updated live leaderboard (debounced asynchronously for high concurrency)
+                triggerDebouncedLeaderboardBroadcast(quizId);
 
                 return AnswerResultDto.builder()
                         .questionId(questionId)

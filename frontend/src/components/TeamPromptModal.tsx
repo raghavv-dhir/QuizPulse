@@ -247,7 +247,7 @@ export const TeamPromptModal: React.FC<TeamPromptModalProps> = ({
               <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-[11px] text-indigo-900/80 flex items-start gap-2">
                 <ShieldAlert className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Solo & Squad Eligible:</strong> You can compete solo as a 1-member squad, or share your <strong>6-character invite code</strong> with up to 2 teammates anytime before the quiz launches.
+                  <strong>Solo & Squad Eligible:</strong> You can compete solo as a 1-member squad, or share your <strong>6-character invite code</strong> with up to 3 teammates anytime before the quiz launches.
                 </span>
               </div>
 

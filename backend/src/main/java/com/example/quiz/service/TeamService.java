@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TeamService {
 
-    private static final int MAX_TEAM_MEMBERS = 3;
+    private static final int MAX_TEAM_MEMBERS = 4;
     private static final String CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 

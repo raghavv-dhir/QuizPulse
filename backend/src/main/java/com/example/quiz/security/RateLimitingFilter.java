@@ -27,10 +27,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private static final long WINDOW_MS = 60_000L; // 1 minute window
 
-    // Configurable thresholds per endpoint
-    private static final int MAX_LOGIN_REQUESTS = 30;
-    private static final int MAX_REGISTER_REQUESTS = 20;
-    private static final int MAX_AUDIT_REQUESTS = 40;
+    // Configurable thresholds per endpoint with high-capacity defaults for 100+ concurrent teams
+    @org.springframework.beans.factory.annotation.Value("${quiz.ratelimit.login:500}")
+    private int maxLoginRequests = 500;
+
+    @org.springframework.beans.factory.annotation.Value("${quiz.ratelimit.register:300}")
+    private int maxRegisterRequests = 300;
+
+    @org.springframework.beans.factory.annotation.Value("${quiz.ratelimit.audit:500}")
+    private int maxAuditRequests = 500;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -81,9 +86,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private int getMaxAllowed(String method, String path) {
         if ("POST".equalsIgnoreCase(method)) {
-            if (path.endsWith("/api/auth/login")) return MAX_LOGIN_REQUESTS;
-            if (path.endsWith("/api/auth/register")) return MAX_REGISTER_REQUESTS;
-            if (path.contains("/audit/cheating")) return MAX_AUDIT_REQUESTS;
+            if (path.endsWith("/api/auth/login")) return maxLoginRequests;
+            if (path.endsWith("/api/auth/register")) return maxRegisterRequests;
+            if (path.contains("/audit/cheating")) return maxAuditRequests;
         }
         return 0; // Not rate limited
     }

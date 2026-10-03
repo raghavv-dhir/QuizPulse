@@ -395,7 +395,7 @@ export const ParticipantLobbyPage: React.FC = () => {
               <div className="space-y-2.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-xs font-black uppercase tracking-wider text-slate-400 block">
-                    Squad Members ({userTeam.members?.length || 0} / 3)
+                    Squad Members ({userTeam.members?.length || 0} / 4)
                   </span>
                   {userTeam.members && userTeam.members.length === 1 && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold shadow-sm">
@@ -404,7 +404,7 @@ export const ParticipantLobbyPage: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {userTeam.members?.map((m, idx) => (
                     <div
                       key={m.id}
@@ -428,7 +428,7 @@ export const ParticipantLobbyPage: React.FC = () => {
               <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-200/80 text-[11px] text-indigo-900 font-medium flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
                 <span>
-                  <strong>Team Eligibility:</strong> Teams of 1 to 3 members are fully eligible to play. You can compete solo as a 1-member squad or invite teammates using your code.
+                  <strong>Team Eligibility:</strong> Teams of 1 to 4 members are fully eligible to play. You can compete solo as a 1-member squad or invite teammates using your code.
                 </span>
               </div>
             </div>

@@ -36,9 +36,9 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
 
     long countByQuestionSessionIdAndIsCorrectFalse(Long questionSessionId);
 
-    @Query("SELECT a FROM Answer a WHERE a.quiz.id = :quizId AND a.isOfficialTeamAnswer = true")
+    @Query("SELECT a FROM Answer a LEFT JOIN FETCH a.team WHERE a.quiz.id = :quizId AND a.isOfficialTeamAnswer = true")
     List<Answer> findOfficialTeamAnswersByQuizId(@Param("quizId") Long quizId);
 
-    @Query("SELECT a FROM Answer a WHERE a.quiz.id = :quizId AND a.team IS NULL AND a.submissionStatus = 'ACCEPTED'")
+    @Query("SELECT a FROM Answer a LEFT JOIN FETCH a.user WHERE a.quiz.id = :quizId AND a.team IS NULL AND a.submissionStatus = 'ACCEPTED'")
     List<Answer> findIndividualAcceptedAnswersByQuizId(@Param("quizId") Long quizId);
 }

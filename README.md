@@ -1,6 +1,6 @@
 # QuizPulse - Production Real-Time Quiz Competition Platform
 
-A production-grade, highly-concurrent real-time online quiz competition platform engineered for live showdowns with up to **100 teams (2–3 members per team, ~300 simultaneous participants)** or individual competitors.
+A production-grade, highly-concurrent real-time online quiz competition platform engineered for live showdowns with up to **100 teams (1–4 members per team, ~400 simultaneous participants)** or individual competitors.
 
 The core defining feature is **authoritative server-side speed-based scoring**, where answer speed directly and smoothly determines the points awarded, with strict sub-millisecond precision and anti-cheating enforcement.
 
@@ -13,7 +13,7 @@ The core defining feature is **authoritative server-side speed-based scoring**, 
   Clamped strictly between $0$ and $\text{maxScore}$. Supports both **Linear** and **Fixed-Bucket** strategies via an extensible `ScoringStrategy` pattern.
 * **Server-Authoritative Timing**: Timestamps and response times are strictly computed on the server (`serverSubmissionTimestamp - serverQuestionStartTimestamp`). Client clocks or timers are never trusted.
 * **Team Mode & First-Answer Policy**:
-  * 100 teams $\times$ 2–3 members.
+  * 100 teams $\times$ 1–4 members.
   * In Team mode, the **first valid answer submitted by any team member** locks in the team's official answer and points. Subsequent teammate submissions are recorded as `IGNORED_DUPLICATE` awarding 0 points, preventing duplicate scoring under high concurrency.
 * **Deterministic Tie-Breaking**:
   1. `Total Score` (DESC)

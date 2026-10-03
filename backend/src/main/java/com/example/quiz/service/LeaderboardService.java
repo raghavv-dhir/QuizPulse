@@ -41,7 +41,7 @@ public class LeaderboardService {
     }
 
     private List<LeaderboardEntryDto> calculateTeamLeaderboard(Quiz quiz, int totalQuestions) {
-        List<Team> teams = teamRepository.findByQuizIdOrderByNameAsc(quiz.getId());
+        List<Team> teams = teamRepository.findByQuizIdWithMembersAndUsersOrderByNameAsc(quiz.getId());
         List<Answer> officialAnswers = answerRepository.findOfficialTeamAnswersByQuizId(quiz.getId());
 
         Map<Long, List<Answer>> answersByTeam = officialAnswers.stream()
@@ -107,7 +107,7 @@ public class LeaderboardService {
     }
 
     private List<LeaderboardEntryDto> calculateIndividualLeaderboard(Quiz quiz, int totalQuestions) {
-        List<QuizParticipant> participants = participantRepository.findByQuizIdOrderByJoinedAtAsc(quiz.getId());
+        List<QuizParticipant> participants = participantRepository.findByQuizIdWithUserOrderByJoinedAtAsc(quiz.getId());
         List<Answer> acceptedAnswers = answerRepository.findIndividualAcceptedAnswersByQuizId(quiz.getId());
 
         Map<Long, List<Answer>> answersByUser = acceptedAnswers.stream()

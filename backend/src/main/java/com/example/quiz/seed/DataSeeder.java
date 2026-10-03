@@ -74,7 +74,7 @@ public class DataSeeder implements CommandLineRunner {
         // 3. Seed Sample Quiz (Team Mode, Speed-based Linear scoring)
         Quiz sampleQuiz = Quiz.builder()
                 .title("Grand Technology & Science Championship 2026")
-                .description("Compete in teams of 2-3 members. Answer fast to claim maximum points! Every millisecond counts.")
+                .description("Compete in teams of 1-4 members. Answer fast to claim maximum points! Every millisecond counts.")
                 .mode(QuizMode.TEAM)
                 .status(QuizStatus.LOBBY) // Ready in lobby for instant testing!
                 .defaultQuestionDurationSeconds(15)

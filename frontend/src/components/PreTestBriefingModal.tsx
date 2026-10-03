@@ -189,9 +189,9 @@ export const PreTestBriefingModal: React.FC<PreTestBriefingModalProps> = ({
               <div className="p-3 rounded-2xl bg-violet-50/60 border border-violet-100 flex items-start gap-2.5">
                 <Users className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" />
                 <div>
-                  <strong className="block text-slate-900 font-bold">Teams of 1 to 3 Members Allowed</strong>
+                  <strong className="block text-slate-900 font-bold">Teams of 1 to 4 Members Allowed</strong>
                   <span className="text-slate-600 text-[11px] leading-relaxed">
-                    You can participate as a <strong>1-member solo squad</strong> or invite up to 2 peers. First teammate submission locks the answer.
+                    You can participate as a <strong>1-member solo squad</strong> or invite up to 3 peers. First teammate submission locks the answer.
                   </span>
                 </div>
               </div>
