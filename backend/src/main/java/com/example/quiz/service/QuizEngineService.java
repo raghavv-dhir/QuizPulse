@@ -33,6 +33,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +50,7 @@ public class QuizEngineService {
     private final AnswerRepository answerRepository;
     private final QuizParticipantRepository participantRepository;
     private final TeamRepository teamRepository;
+    private final UserRepository userRepository;
     private final ScoringEngine scoringEngine;
     private final LeaderboardService leaderboardService;
     private final QuizWebSocketService webSocketService;

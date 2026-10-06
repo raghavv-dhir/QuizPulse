@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 @Order(10)
@@ -39,15 +40,31 @@ public class AaranyaQuizSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        boolean alreadyExists = quizRepository.findAll().stream()
-                .anyMatch(q -> q.getTitle() != null && q.getTitle().contains("AARANYA"));
+        List<Quiz> oldAaranyaQuizzes = quizRepository.findAll().stream()
+                .filter(q -> q.getTitle() != null && q.getTitle().toUpperCase().contains("AARANYA"))
+                .toList();
 
-        if (alreadyExists) {
-            log.info("Aaranya Sustainability Quiz already present in database. Skipping creation.");
+        // Check if official 22-question version is already seeded
+        boolean alreadyHas22 = oldAaranyaQuizzes.stream()
+                .anyMatch(q -> q.getQuestions() != null && q.getQuestions().size() == 22);
+
+        if (alreadyHas22) {
+            log.info("Official 22-question Aaranya Sustainability Quiz already present in database. Skipping creation.");
             return;
         }
 
-        log.info("Seeding AARANYA – Sustainability & Social Responsibility Quiz into database...");
+        // Remove old/outdated Aaranya quizzes
+        for (Quiz oldQuiz : oldAaranyaQuizzes) {
+            log.info("Removing old Aaranya quiz (ID: {}, questions: {})",
+                    oldQuiz.getId(), oldQuiz.getQuestions() != null ? oldQuiz.getQuestions().size() : 0);
+            try {
+                quizRepository.delete(oldQuiz);
+            } catch (Exception e) {
+                log.warn("Could not delete old quiz ID {}: {}", oldQuiz.getId(), e.getMessage());
+            }
+        }
+
+        log.info("Seeding official AARANYA – Sustainability & Social Responsibility Quiz (22 MCQs) into database...");
 
         // Ensure host/admin user exists
         User admin = userRepository.findAll().stream()
@@ -66,7 +83,7 @@ public class AaranyaQuizSeeder implements CommandLineRunner {
 
         Quiz quiz = Quiz.builder()
                 .title(QUIZ_TITLE)
-                .description("Roll for a Sustainable Future – Sustainability Escape Room. First Round: Sustainability & Social Responsibility Quiz (20 MCQs | Team Size: 1-4).")
+                .description("AARANYA – SOCIAL RESPONSIBILITY & SUSTAINABILITY CLUB | ROLL FOR A SUSTAINABLE FUTURE – SUSTAINABILITY ESCAPE ROOM | First Round: Sustainability & Social Responsibility Quiz (22 MCQs | Suggested Duration: 15–20 Minutes | Team Size: 3–5).")
                 .mode(QuizMode.TEAM)
                 .status(QuizStatus.LOBBY) // Ready in lobby for teams to join and host to launch
                 .defaultQuestionDurationSeconds(45)
@@ -88,163 +105,179 @@ public class AaranyaQuizSeeder implements CommandLineRunner {
 
         String[][] mcqs = {
                 {
-                        "Which of the following best describes sustainability?",
-                        "Using resources without considering the future",
-                        "Meeting present needs while protecting resources for future generations",
-                        "Focusing only on economic growth",
-                        "Avoiding all forms of development",
+                        "Which statement most accurately captures the core idea of sustainability?",
+                        "Maximising present welfare despite future resource limits",
+                        "Meeting present needs while protecting future generations",
+                        "Preserving resources by limiting economic development",
+                        "Prioritising growth before environmental concerns",
                         "2" // B
                 },
                 {
-                        "What is the main purpose of the Sustainable Development Goals (SDGs)?",
-                        "To guide global efforts toward social, economic and environmental development",
-                        "To promote only industrial development",
-                        "To increase consumption of natural resources",
-                        "To replace national governments",
-                        "1" // A
+                        "The SDGs are best understood as:",
+                        "Uniformly binding environmental standards for all countries",
+                        "Global goals addressing social, economic and environmental challenges",
+                        "Corporate framework for evaluating ESG performance",
+                        "Replacement for national development policies",
+                        "2" // B
                 },
                 {
-                        "Which practice directly helps reduce waste?",
-                        "Single-use consumption",
-                        "Throwing recyclable materials with general waste",
-                        "Reusing products whenever possible",
-                        "Buying more packaging",
+                        "Which intervention follows the strongest waste-reduction principle?",
+                        "Increasing recycling while maintaining high single-use consumption",
+                        "Reusing products before recycling or disposal",
+                        "Recycling all materials regardless of energy use",
+                        "Replacing one disposable material with another recyclable one",
+                        "2" // B
+                },
+                {
+                        "Responsible consumption is best reflected by which decision?",
+                        "Choosing the lowest-priced product",
+                        "Choosing mainly by environmental certification",
+                        "Considering need, durability, lifecycle and social impacts",
+                        "Avoiding products with any environmental impact",
                         "3" // C
                 },
                 {
-                        "What does responsible consumption mean?",
-                        "Buying as much as possible",
-                        "Making choices that consider environmental and social impacts",
-                        "Choosing products only by appearance",
-                        "Avoiding all consumer products",
+                        "Which situation most clearly demonstrates social responsibility?",
+                        "Donating without assessing community needs",
+                        "Creating measurable benefits for affected communities",
+                        "Prioritising reputation in community initiatives",
+                        "Focusing on environment while excluding affected groups",
                         "2" // B
                 },
                 {
-                        "Which of these is an example of social responsibility?",
-                        "Ignoring community needs",
-                        "Supporting actions that benefit society",
-                        "Increasing unnecessary waste",
-                        "Using resources without limits",
-                        "2" // B
-                },
-                {
-                        "CSR stands for:",
+                        "CSR most accurately refers to:",
+                        "Corporate Sustainability Reporting",
                         "Corporate Social Responsibility",
-                        "Corporate Sustainability Regulation",
-                        "Community Service Resource",
-                        "Corporate Safety Requirement",
+                        "Community Sustainability Regulation",
+                        "Corporate Stakeholder Resilience",
+                        "2" // B
+                },
+                {
+                        "ESG is primarily a framework for considering:",
+                        "Environmental, Social and Governance factors in decisions",
+                        "Economic, Sustainability and Growth factors in national development",
+                        "Environmental, Safety and Growth factors in industry",
+                        "Energy, Social and Green factors in consumer behaviour",
                         "1" // A
                 },
                 {
-                        "ESG commonly refers to:",
-                        "Economy, Society and Growth",
-                        "Environment, Social and Governance",
-                        "Energy, Sustainability and Greenery",
-                        "Environment, Safety and Growth",
+                        "A campus wants to reduce water consumption without reducing hygiene. Which is the strongest first intervention?",
+                        "Restricting water availability across facilities",
+                        "Repairing leaks and monitoring high-use points",
+                        "Replacing freshwater with untreated alternative water",
+                        "Reducing use without measuring water losses",
                         "2" // B
                 },
                 {
-                        "Which action is most likely to conserve water?",
-                        "Leaving taps running unnecessarily",
-                        "Fixing leaking taps and pipes",
-                        "Washing vehicles daily with excess water",
-                        "Using fresh water for every cleaning task",
+                        "Which option represents the most sustainable energy decision in a suitable context?",
+                        "Increasing renewables while allowing avoidable energy waste",
+                        "Using solar while ignoring system efficiency",
+                        "Combining energy efficiency with appropriately selected renewable energy sources",
+                        "Replacing every conventional energy source immediately regardless of feasibility",
+                        "3" // C
+                },
+                {
+                        "Which statement about recycling is most accurate?",
+                        "Recycling eliminates environmental impact",
+                        "Recycling recovers materials but does not replace waste prevention",
+                        "Recycling is always better than reuse",
+                        "Recycling makes product design and consumption irrelevant",
                         "2" // B
                 },
                 {
-                        "Which energy choice generally has a lower environmental impact?",
-                        "Solar energy",
-                        "Uncontrolled fossil-fuel use",
-                        "Wasting electricity",
-                        "Leaving lights on continuously",
+                        "A company incorporates environmental risks, employee welfare and governance practices into major decisions. This most directly demonstrates:",
+                        "Compliance-oriented waste management",
+                        "Responsible business decision-making",
+                        "Promotional sustainability",
+                        "Short-term operational efficiency",
+                        "2" // B
+                },
+                {
+                        "Which purchasing decision demonstrates the strongest responsible-consumption approach?",
+                        "Choosing durability over a cheaper upfront option",
+                        "Choosing the strongest sustainability marketing claims",
+                        "Choosing highest recycled content regardless of durability",
+                        "Choosing the cheapest product because it uses fewer resources",
                         "1" // A
                 },
                 {
-                        "What is the main benefit of recycling?",
-                        "It increases landfill waste",
-                        "It helps recover materials and reduce waste",
-                        "It always eliminates pollution completely",
-                        "It encourages single-use products",
+                        "Why can urban tree planting contribute to sustainability?",
+                        "Automatically offsetting all urban emissions",
+                        "Supporting biodiversity, shade, air quality and resilience when planned well",
+                        "Increasing city aesthetics as the main sustainability benefit",
+                        "Guaranteeing lower water and energy use regardless of species/location",
                         "2" // B
                 },
                 {
-                        "A company that considers environmental and social impacts while making business decisions is demonstrating:",
-                        "Responsible business practices",
-                        "Resource wastage",
-                        "Unplanned consumption",
-                        "Environmental neglect",
+                        "Which action best represents an ethical environmental choice?",
+                        "Following disposal rules only when enforced",
+                        "Reducing unnecessary use and managing unavoidable waste responsibly",
+                        "Choosing recyclable products despite over-consumption",
+                        "Moving waste where its impact is less visible",
+                        "2" // B
+                },
+                {
+                        "When two sustainable options involve different environmental and social trade-offs, which skill is most important?",
+                        "Choosing the lowest immediate cost",
+                        "Evaluating short- and long-term impacts across stakeholders",
+                        "Choosing the strongest sustainability label",
+                        "Choosing the option requiring least coordination",
+                        "2" // B
+                },
+                {
+                        "Which strategy is most consistent with reducing plastic waste at source?",
+                        "Improving collection while keeping consumption unchanged",
+                        "Replacing every plastic item with a disposable alternative",
+                        "Reducing single-use items and using durable reusables",
+                        "Increasing recycling awareness without changing purchases",
+                        "3" // C
+                },
+                {
+                        "Biodiversity refers most precisely to:",
+                        "Number of species in an ecosystem only",
+                        "Variety of life within species, between species and across ecosystems",
+                        "Total animal and plant population in an area",
+                        "Vegetation abundance relative to built infrastructure",
+                        "2" // B
+                },
+                {
+                        "Which team behaviour would most improve performance in a sustainability challenge?",
+                        "Dividing tasks with minimal information sharing",
+                        "Letting the most knowledgeable member decide everything",
+                        "Combining expertise through communication and joint decisions",
+                        "Avoiding discussion to prioritise speed",
+                        "3" // C
+                },
+                {
+                        "Why is long-term thinking essential to sustainability?",
+                        "Prioritising future benefits over present needs",
+                        "Because environmental and social effects may emerge or persist beyond the time of the original decision",
+                        "Because short-term decisions are generally incompatible with economic growth",
+                        "Because long-term outcomes can always be predicted more accurately than short-term outcomes",
+                        "2" // B
+                },
+                {
+                        "Which statement best reflects “Roll the dice. Make the choice. Save the future.”?",
+                        "Sustainability mainly depends on individual choices",
+                        "Choices should be assessed for wider and future impacts",
+                        "Sustainability mainly depends on green technology",
+                        "Individual actions matter only with government regulation",
+                        "2" // B
+                },
+                {
+                        "A programme provides scholarships to girls, improves access to quality education and reduces gender-based barriers to schooling. Which SDG combination is most directly represented?",
+                        "SDG 4 · Quality Education + SDG 5 · Gender Equality",
+                        "SDG 1 · No Poverty + SDG 10 · Reduced Inequalities",
+                        "SDG 3 · Good Health + SDG 8 · Decent Work",
+                        "SDG 5 · Gender Equality + SDG 12 · Responsible Consumption",
                         "1" // A
                 },
                 {
-                        "Which is the most responsible choice when buying a product?",
-                        "Choose only the most heavily packaged option",
-                        "Consider durability, need and environmental impact",
-                        "Buy multiple products even when unnecessary",
-                        "Ignore how the product was produced",
-                        "2" // B
-                },
-                {
-                        "What is the purpose of planting and maintaining trees in urban areas?",
-                        "To increase waste generation",
-                        "To support green spaces and environmental quality",
-                        "To reduce biodiversity",
-                        "To increase resource consumption",
-                        "2" // B
-                },
-                {
-                        "Which option represents an ethical environmental choice?",
-                        "Dumping waste in an open area",
-                        "Disposing waste responsibly and reducing unnecessary consumption",
-                        "Wasting water because it is available",
-                        "Ignoring pollution from daily activities",
-                        "2" // B
-                },
-                {
-                        "Which skill is most important when making a sustainable decision?",
-                        "Ignoring long-term consequences",
-                        "Critical thinking about environmental and social impacts",
-                        "Choosing the fastest option every time",
-                        "Avoiding teamwork",
-                        "2" // B
-                },
-                {
-                        "Which of the following can help reduce plastic waste?",
-                        "Carrying a reusable bottle or bag",
-                        "Increasing use of disposable items",
-                        "Using more plastic packaging",
-                        "Throwing plastic into open spaces",
-                        "1" // A
-                },
-                {
-                        "What does biodiversity refer to?",
-                        "Variety of living organisms in an area",
-                        "Amount of waste in a city",
-                        "Number of buildings in a region",
-                        "Total energy consumed by businesses",
-                        "1" // A
-                },
-                {
-                        "Which action best demonstrates teamwork in a sustainability challenge?",
-                        "One member makes every decision",
-                        "Team members communicate and contribute to solving the problem",
-                        "Members work against each other",
-                        "Members avoid sharing information",
-                        "2" // B
-                },
-                {
-                        "Why is long-term thinking important for sustainability?",
-                        "Environmental and social effects can continue beyond the immediate decision",
-                        "It makes every decision slower",
-                        "It removes the need for responsible choices",
-                        "It focuses only on short-term profit",
-                        "1" // A
-                },
-                {
-                        "Which statement best reflects the theme 'Roll the dice. Make the choice. Save the future.'?",
-                        "Every decision can have consequences for the future",
-                        "Sustainability depends only on luck",
-                        "Individual choices have no environmental impact",
-                        "Sustainable decisions are unnecessary",
+                        "Which statement best distinguishes CSR from ESG?",
+                        "CSR covers social responsibility; ESG assesses environmental, social and governance factors",
+                        "CSR measures environmental performance; ESG covers charity",
+                        "CSR applies only to nonprofits; ESG only to listed companies",
+                        "CSR and ESG are identical terms",
                         "1" // A
                 }
         };
@@ -274,6 +307,6 @@ public class AaranyaQuizSeeder implements CommandLineRunner {
             }
         }
 
-        log.info("AARANYA Quiz initialized successfully with 20 questions (Quiz ID: {}).", quiz.getId());
+        log.info("AARANYA Quiz initialized successfully with 22 questions (Quiz ID: {}).", quiz.getId());
     }
 }
