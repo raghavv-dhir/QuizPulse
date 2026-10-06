@@ -12,7 +12,9 @@ import {
   Sparkles,
   Zap,
   RotateCcw,
+  Activity,
 } from 'lucide-react';
+import { useQuizWebSocket } from '../hooks/useQuizWebSocket';
 
 export const ResultsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,21 +25,59 @@ export const ResultsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'leaderboard' | 'breakdown'>('leaderboard');
   const [showAllEntries, setShowAllEntries] = useState(false);
+  const [lastUpdatedTime, setLastUpdatedTime] = useState<Date>(new Date());
+
+  const fetchResults = async (showSpinner = true) => {
+    try {
+      if (showSpinner) setLoading(true);
+      const data = await api.quizzes.getResults(quizId);
+      setResults(data);
+      setLastUpdatedTime(new Date());
+    } catch (e) {
+      console.error('Failed to load results', e);
+    } finally {
+      if (showSpinner) setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchResults() {
-      try {
-        setLoading(true);
-        const data = await api.quizzes.getResults(quizId);
-        setResults(data);
-      } catch (e) {
-        console.error('Failed to load results', e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchResults();
+    fetchResults(true);
   }, [quizId]);
+
+  // Dynamically update podium and leaderboard for late-arriving students in real time
+  useQuizWebSocket({
+    quizId,
+    onEvent: (event) => {
+      if (event.eventType === 'LEADERBOARD_UPDATED') {
+        if (Array.isArray(event.payload)) {
+          setResults((prev) => {
+            if (!prev) return prev;
+            const newLeaderboard = event.payload;
+            const myIndex = newLeaderboard.findIndex((e: any) =>
+              (user && e.id === user.id) ||
+              (user && e.memberNames?.some((m: string) =>
+                m.toLowerCase().includes(user.fullName?.toLowerCase() || user.username?.toLowerCase())
+              ))
+            );
+            const updatedRank = myIndex >= 0 ? myIndex + 1 : prev.myRank;
+            const myEntry = myIndex >= 0 ? newLeaderboard[myIndex] : null;
+            const updatedScore = myEntry ? myEntry.totalScore : prev.myTotalScore;
+            return {
+              ...prev,
+              leaderboard: newLeaderboard,
+              myRank: updatedRank,
+              myTotalScore: updatedScore,
+            };
+          });
+          setLastUpdatedTime(new Date());
+        } else {
+          fetchResults(false);
+        }
+      } else if (event.eventType === 'QUESTION_ENDED' || event.eventType === 'QUIZ_ENDED') {
+        fetchResults(false);
+      }
+    },
+  });
 
   if (loading) {
     return (
@@ -73,9 +113,17 @@ export const ResultsPage: React.FC = () => {
     <div className="max-w-4xl mx-auto px-3.5 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-10">
       {/* Top Celebratory Header */}
       <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 text-amber-800 text-xs font-black border border-amber-200/90 shadow-sm animate-bounce">
-          <Trophy className="w-4 h-4 text-amber-600 fill-amber-500" />
-          <span>OFFICIAL VICTORY CEREMONY</span>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 text-amber-800 text-xs font-black border border-amber-200/90 shadow-sm animate-bounce">
+            <Trophy className="w-4 h-4 text-amber-600 fill-amber-500" />
+            <span>OFFICIAL VICTORY CEREMONY</span>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 text-xs font-extrabold border border-emerald-200 shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-emerald-500 -ml-2.5" />
+            <Activity className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Live Standings Active</span>
+          </div>
         </div>
 
         <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">

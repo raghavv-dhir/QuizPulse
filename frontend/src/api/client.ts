@@ -119,7 +119,12 @@ export const api = {
     get: (id: number) => request<QuizDetail>(`/quizzes/${id}`),
     join: (id: number) => request<string>(`/quizzes/${id}/join`, { method: 'POST' }),
     leave: (id: number) => request<string>(`/quizzes/${id}/leave`, { method: 'POST' }),
+    start: (id: number) => request<QuizState>(`/quizzes/${id}/start`, { method: 'POST' }),
     getState: (id: number) => request<QuizState>(`/quizzes/${id}/state`),
+    timeoutQuestion: (quizId: number, questionId: number) =>
+      request<AnswerResult>(`/quizzes/${quizId}/questions/${questionId}/timeout`, {
+        method: 'POST',
+      }),
     submitAnswer: (quizId: number, questionId: number, selectedOptionId: number) =>
       request<AnswerResult>(`/quizzes/${quizId}/questions/${questionId}/answer`, {
         method: 'POST',

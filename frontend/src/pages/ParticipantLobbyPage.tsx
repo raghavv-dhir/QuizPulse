@@ -17,6 +17,7 @@ import {
   Share2,
   Sparkles,
   LogOut,
+  Play,
 } from 'lucide-react';
 
 import { toGamePin, parsePinToId } from '../utils/gamePin';
@@ -32,6 +33,7 @@ export const ParticipantLobbyPage: React.FC = () => {
   const [quiz, setQuiz] = useState<QuizDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [startingQuiz, setStartingQuiz] = useState(false);
 
   // Mandatory Pre-test Briefing State
   const [showBriefingModal, setShowBriefingModal] = useState<boolean>(() => {
@@ -56,7 +58,7 @@ export const ParticipantLobbyPage: React.FC = () => {
       setQuiz(quizData);
       setLivePlayerCount(quizData.participantCount || 1);
 
-      if (quizData.status === 'RUNNING' || quizData.status === 'QUESTION_ACTIVE') {
+      if (sessionStorage.getItem(`quiz_${quizId}_started`) === 'true') {
         navigate(`/quizzes/${quizId}/live`);
         return;
       }
@@ -78,6 +80,42 @@ export const ParticipantLobbyPage: React.FC = () => {
       setError(err.message || 'Failed to enter lobby');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStudentStartQuiz = async () => {
+    // If briefing not cleared yet, open briefing modal
+    if (sessionStorage.getItem(`quiz_${quizId}_briefing_cleared`) !== 'true') {
+      setShowBriefingModal(true);
+      return;
+    }
+
+    try {
+      setStartingQuiz(true);
+      await api.quizzes.start(quizId);
+      sessionStorage.setItem(`quiz_${quizId}_started`, 'true');
+      navigate(`/quizzes/${quizId}/live`);
+    } catch (e: any) {
+      console.warn('Student start quiz warning', e);
+      sessionStorage.setItem(`quiz_${quizId}_started`, 'true');
+      navigate(`/quizzes/${quizId}/live`);
+    } finally {
+      setStartingQuiz(false);
+    }
+  };
+
+  const handleBriefingCleared = async () => {
+    setShowBriefingModal(false);
+    try {
+      setStartingQuiz(true);
+      await api.quizzes.start(quizId);
+      sessionStorage.setItem(`quiz_${quizId}_started`, 'true');
+      navigate(`/quizzes/${quizId}/live`);
+    } catch {
+      sessionStorage.setItem(`quiz_${quizId}_started`, 'true');
+      navigate(`/quizzes/${quizId}/live`);
+    } finally {
+      setStartingQuiz(false);
     }
   };
 
@@ -315,18 +353,40 @@ export const ParticipantLobbyPage: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-indigo-50/90 via-violet-50/70 to-indigo-100/60 border border-indigo-200/80 shadow-inner space-y-3">
-            <div className="flex items-center justify-center gap-2 py-1">
-              <div className="w-3 h-3 rounded-full bg-indigo-600 animate-bounce shadow-md shadow-indigo-500/50" style={{ animationDelay: '0ms' }} />
-              <div className="w-3 h-3 rounded-full bg-violet-600 animate-bounce shadow-md shadow-violet-500/50" style={{ animationDelay: '150ms' }} />
-              <div className="w-3 h-3 rounded-full bg-purple-600 animate-bounce shadow-md shadow-purple-500/50" style={{ animationDelay: '300ms' }} />
+          <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-indigo-900 via-indigo-950 to-purple-950 text-white border-2 border-indigo-400/40 shadow-2xl shadow-indigo-950/50 space-y-5 animate-in zoom-in-95">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative z-10 space-y-2 text-center">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-xs font-black uppercase tracking-wider border border-white/15">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Flexible Arrival Start • All Questions Preserved</span>
+              </div>
+              <h3 className="text-xl sm:text-3xl font-black tracking-tight text-white">
+                Ready to Begin Your Quiz?
+              </h3>
+              <p className="text-xs sm:text-sm text-indigo-200/90 max-w-md mx-auto leading-relaxed">
+                You can start whenever you are ready! Even if you arrived 5–20 minutes after others, you will get every question from Question 1 with full timer allocations.
+              </p>
             </div>
-            <h4 className="text-base font-black text-indigo-950">
-              Waiting for Quiz Host to launch the game...
-            </h4>
-            <p className="text-xs sm:text-sm text-indigo-800/80 max-w-md mx-auto leading-relaxed">
-              Keep this screen open! As soon as the host hits <strong>Start Quiz</strong>, your screen will automatically launch into Question 1 with live audio-visual countdown.
-            </p>
+
+            <div className="relative z-10 pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                onClick={handleStudentStartQuiz}
+                disabled={startingQuiz}
+                className="w-full sm:w-auto !h-14 !px-10 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 text-white text-base font-black shadow-xl shadow-emerald-500/30 flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                {startingQuiz ? (
+                  <>
+                    <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Launching Quiz...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5 fill-white" />
+                    <span>START QUIZ 🚀</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
 
@@ -508,7 +568,7 @@ export const ParticipantLobbyPage: React.FC = () => {
           quizId={quizId}
           quizTitle={quiz.title}
           isOpen={showBriefingModal}
-          onCleared={() => setShowBriefingModal(false)}
+          onCleared={handleBriefingCleared}
         />
       )}
     </div>

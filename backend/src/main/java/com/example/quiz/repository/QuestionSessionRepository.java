@@ -12,5 +12,7 @@ import java.util.Optional;
 public interface QuestionSessionRepository extends JpaRepository<QuestionSession, Long> {
     Optional<QuestionSession> findFirstByQuizIdAndSessionStatusOrderByCreatedAtDesc(Long quizId, SessionStatus status);
     Optional<QuestionSession> findByQuizIdAndQuestionIdAndSessionStatus(Long quizId, Long questionId, SessionStatus status);
+    Optional<QuestionSession> findFirstByQuizIdAndUserIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(Long quizId, Long userId, Long questionId, SessionStatus status);
+    Optional<QuestionSession> findFirstByQuizIdAndTeamIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(Long quizId, Long teamId, Long questionId, SessionStatus status);
     List<QuestionSession> findByQuizIdOrderByCreatedAtAsc(Long quizId);
 }

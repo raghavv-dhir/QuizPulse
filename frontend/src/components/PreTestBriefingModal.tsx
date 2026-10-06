@@ -27,7 +27,7 @@ export const PreTestBriefingModal: React.FC<PreTestBriefingModalProps> = ({
   onCleared,
 }) => {
   const storageKey = `quiz_${quizId}_briefing_cleared`;
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(30);
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(10);
   const [hasAgreed, setHasAgreed] = useState<boolean>(false);
 
   // Check if previously cleared in this session
@@ -37,7 +37,7 @@ export const PreTestBriefingModal: React.FC<PreTestBriefingModalProps> = ({
     }
   }, [storageKey, onCleared]);
 
-  // 30-second countdown timer
+  // 10-second countdown timer
   useEffect(() => {
     if (!isOpen) return;
 
@@ -87,7 +87,7 @@ export const PreTestBriefingModal: React.FC<PreTestBriefingModalProps> = ({
               </div>
             </div>
 
-            {/* Mandatory 30s Countdown Pill */}
+            {/* Mandatory 10s Countdown Pill */}
             <div className="shrink-0 flex items-center sm:flex-col items-end gap-1.5 bg-black/25 px-3.5 py-2 rounded-2xl border border-white/15">
               <div className="flex items-center gap-2 text-xs font-extrabold text-amber-300">
                 <Clock className={`w-4 h-4 ${!isTimerDone ? 'animate-spin' : ''}`} />
@@ -155,14 +155,14 @@ export const PreTestBriefingModal: React.FC<PreTestBriefingModalProps> = ({
             </div>
           </div>
 
-          {/* Section 2: 3-Warning Disqualification Rule */}
-          <div className="p-4 rounded-2xl bg-rose-50/70 border border-rose-200/80 space-y-2">
-            <div className="flex items-center gap-2 text-rose-900 font-bold text-xs sm:text-sm">
-              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>3-Warning Termination Policy</span>
+          {/* Section 2: Integrity Warnings Policy */}
+          <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 space-y-2">
+            <div className="flex items-center gap-2 text-amber-900 font-bold text-xs sm:text-sm">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Integrity Telemetry & Real-Time Warnings</span>
             </div>
-            <p className="text-[11px] sm:text-xs text-rose-800 leading-relaxed font-medium">
-              You will receive a warning notice for infractions 1 and 2. <strong>Upon the 3rd infraction, your test will be immediately terminated and disqualified</strong>. Your score will be frozen and reported to the Quiz Master.
+            <p className="text-[11px] sm:text-xs text-amber-800 leading-relaxed font-medium">
+              You will receive on-screen alerts and integrity warnings for detected infractions. <strong>All activities and infractions are logged in real-time</strong> and presented to the Quiz Master for review.
             </p>
           </div>
 
@@ -219,7 +219,7 @@ export const PreTestBriefingModal: React.FC<PreTestBriefingModalProps> = ({
             />
             <div className="text-xs font-semibold select-none leading-relaxed">
               <span>
-                I confirm that I have read the examination instructions and agree to strictly follow all academic integrity rules. I understand that receiving 3 warnings will result in immediate disqualification.
+                I confirm that I have read the examination instructions and agree to strictly follow all academic integrity rules. I understand that all infractions trigger on-screen warnings and are logged for instructor review.
               </span>
               {!isTimerDone && (
                 <span className="block text-amber-700 font-extrabold mt-1">

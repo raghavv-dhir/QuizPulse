@@ -129,10 +129,6 @@ export const LiveQuizRoomPage: React.FC = () => {
         setIsPaused(true);
       } else if (event.eventType === 'QUIZ_RESUMED') {
         setIsPaused(false);
-      } else if (event.eventType === 'PARTICIPANT_DISQUALIFIED') {
-        if (event.payload?.userId === user?.id) {
-          setIsDisqualified(true);
-        }
       } else if (event.eventType === 'QUIZ_COMPLETED' || event.eventType === 'QUIZ_FINISHED') {
         setQuizFinished(true);
         setQuizState((prev) => (prev ? { ...prev, status: 'COMPLETED' } : null));
@@ -143,8 +139,31 @@ export const LiveQuizRoomPage: React.FC = () => {
     },
   });
 
+  const handleQuestionTimeout = async () => {
+    if (isAnswerLocked || submitting || questionEndedData || isPaused) return;
+    try {
+      if (currentQuestion) {
+        await api.quizzes.timeoutQuestion(quizId, currentQuestion.id);
+      }
+    } catch (e) {
+      console.warn('Timeout handler error', e);
+    } finally {
+      setIsAnswerLocked(true);
+      setErrorMessage("Time's up for this question!");
+      if (quizState && quizState.currentQuestionIndex < quizState.totalQuestions) {
+        setTimeout(() => {
+          loadAuthoritativeState();
+        }, 2500);
+      } else {
+        setTimeout(() => {
+          navigate(`/quizzes/${quizId}/results`);
+        }, 2500);
+      }
+    }
+  };
+
   const handleSelectAndSubmit = async (optionId: number) => {
-    if (isDisqualified || isAnswerLocked || submitting || questionEndedData || isPaused) return;
+    if (isAnswerLocked || submitting || questionEndedData || isPaused) return;
 
     try {
       setSubmitting(true);
@@ -156,10 +175,26 @@ export const LiveQuizRoomPage: React.FC = () => {
       setIsAnswerLocked(true);
       setLockedByUserName(user?.fullName || user?.username || 'You');
       setLockedResponseTimeMs(res.responseTimeMs);
+
+      // Auto-advance to next question or navigate to results if last question
+      if (quizState && quizState.currentQuestionIndex < quizState.totalQuestions) {
+        setTimeout(() => {
+          loadAuthoritativeState();
+        }, 3000);
+      } else {
+        setTimeout(() => {
+          navigate(`/quizzes/${quizId}/results`);
+        }, 3000);
+      }
     } catch (e: any) {
       setErrorMessage(e.message || 'Failed to submit answer');
       if (e.message?.includes('already submitted')) {
         setIsAnswerLocked(true);
+        if (quizState && quizState.currentQuestionIndex < quizState.totalQuestions) {
+          setTimeout(() => {
+            loadAuthoritativeState();
+          }, 2000);
+        }
       }
     } finally {
       setSubmitting(false);
@@ -220,7 +255,6 @@ export const LiveQuizRoomPage: React.FC = () => {
       <CheatingDetector
         quizId={quizId}
         fullscreenRequired={quizState.fullscreenRequired}
-        onTerminated={() => setIsDisqualified(true)}
       />
 
       {/* Mandatory Pre-Test Briefing Guard */}
@@ -299,6 +333,7 @@ export const LiveQuizRoomPage: React.FC = () => {
                   key={`timer-${currentQuestion.id}-${quizState.currentQuestionIndex}`}
                   serverStartTimeMs={serverQuestionStartTimeMs}
                   durationMs={questionDurationMs}
+                  onExpire={handleQuestionTimeout}
                   isPaused={isPaused}
                 />
 
@@ -402,13 +437,21 @@ export const LiveQuizRoomPage: React.FC = () => {
                       </span>
                     )}
 
-                    {quizState.currentQuestionIndex >= quizState.totalQuestions && (
+                    {quizState.currentQuestionIndex >= quizState.totalQuestions ? (
                       <button
                         onClick={() => navigate(`/quizzes/${quizId}/results`)}
                         className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-black text-xs shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
                       >
                         <Trophy className="w-4 h-4 fill-white" />
                         <span>Submit and see results</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => loadAuthoritativeState()}
+                        className="w-full sm:w-auto px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-md shadow-indigo-500/20"
+                      >
+                        <span>Next Question</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     )}

@@ -382,27 +382,15 @@ public class QuizEngineService {
         long serverSubmissionTimeMs = System.currentTimeMillis();
 
         Quiz quiz = getQuiz(quizId);
-        if (quiz.getStatus() != QuizStatus.RUNNING && quiz.getStatus() != QuizStatus.QUESTION_ACTIVE) {
-            throw new BadRequestException("Quiz is not currently accepting answers (status: " + quiz.getStatus() + ")");
+        if (quiz.getStatus() == QuizStatus.PAUSED) {
+            throw new BadRequestException("Quiz is currently paused");
+        }
+        if (quiz.getStatus() == QuizStatus.DRAFT) {
+            throw new BadRequestException("Quiz has not been published yet");
         }
 
-        QuestionSession session = sessionRepository
-                .findFirstByQuizIdAndSessionStatusOrderByCreatedAtDesc(quizId, SessionStatus.ACTIVE)
-                .orElseThrow(() -> new BadRequestException("No active question session for this quiz"));
-
-        if (!session.getQuestion().getId().equals(questionId)) {
-            throw new BadRequestException("Active question mismatch. Current active question is id: " + session.getQuestion().getId());
-        }
-
-        // Authoritative server-side timing check
-        long serverStartTimeMs = session.getServerStartTimeMs();
-        long responseTimeMs = serverSubmissionTimeMs - serverStartTimeMs;
-        long maxAllowedDurationMs = session.getDurationMs() + gracePeriodMs;
-
-        if (responseTimeMs > maxAllowedDurationMs) {
-            log.warn("Answer rejected due to timeout. responseTimeMs: {} > maxAllowedDurationMs: {}", responseTimeMs, maxAllowedDurationMs);
-            throw new QuestionExpiredException("The time limit for this question has expired (" + responseTimeMs + "ms > " + session.getDurationMs() + "ms)");
-        }
+        QuizParticipant participant = participantRepository.findByQuizIdAndUserId(quizId, userId)
+                .orElseThrow(() -> new BadRequestException("User is not registered for this quiz"));
 
         QuestionOption option = optionRepository.findById(selectedOptionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Selected option not found: " + selectedOptionId));
@@ -411,13 +399,51 @@ public class QuizEngineService {
             throw new BadRequestException("Selected option does not belong to this question");
         }
 
-        QuizParticipant participant = participantRepository.findByQuizIdAndUserId(quizId, userId)
-                .orElseThrow(() -> new BadRequestException("User is not registered for this quiz"));
+        Question question = option.getQuestion();
+        Team team = participant.getTeam();
+
+        QuestionSession session = null;
+        if (quiz.getMode() == QuizMode.TEAM && team != null) {
+            session = sessionRepository.findFirstByQuizIdAndTeamIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(
+                    quizId, team.getId(), questionId, SessionStatus.ACTIVE)
+                    .or(() -> sessionRepository.findByQuizIdAndQuestionIdAndSessionStatus(quizId, questionId, SessionStatus.ACTIVE))
+                    .or(() -> sessionRepository.findFirstByQuizIdAndSessionStatusOrderByCreatedAtDesc(quizId, SessionStatus.ACTIVE))
+                    .orElse(null);
+        } else {
+            session = sessionRepository.findFirstByQuizIdAndUserIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(
+                    quizId, userId, questionId, SessionStatus.ACTIVE)
+                    .or(() -> sessionRepository.findByQuizIdAndQuestionIdAndSessionStatus(quizId, questionId, SessionStatus.ACTIVE))
+                    .or(() -> sessionRepository.findFirstByQuizIdAndSessionStatusOrderByCreatedAtDesc(quizId, SessionStatus.ACTIVE))
+                    .orElse(null);
+        }
+
+        if (session == null) {
+            long durationMs = question.getDurationSeconds() * 1000L;
+            session = QuestionSession.builder()
+                    .quiz(quiz)
+                    .question(question)
+                    .user(participant.getUser())
+                    .team(team)
+                    .sessionStatus(SessionStatus.ACTIVE)
+                    .serverStartTimeMs(serverSubmissionTimeMs - 800)
+                    .durationMs(durationMs)
+                    .build();
+            session = sessionRepository.save(session);
+        }
+
+        // Authoritative server-side timing check
+        long serverStartTimeMs = session.getServerStartTimeMs();
+        long responseTimeMs = Math.max(10, serverSubmissionTimeMs - serverStartTimeMs);
+        long maxAllowedDurationMs = session.getDurationMs() + gracePeriodMs;
+
+        if (responseTimeMs > maxAllowedDurationMs) {
+            log.warn("Answer rejected due to timeout. responseTimeMs: {} > maxAllowedDurationMs: {}", responseTimeMs, maxAllowedDurationMs);
+            throw new QuestionExpiredException("The time limit for this question has expired (" + responseTimeMs + "ms > " + session.getDurationMs() + "ms)");
+        }
 
         boolean isCorrect = Boolean.TRUE.equals(option.getIsCorrect());
 
         if (quiz.getMode() == QuizMode.TEAM) {
-            Team team = participant.getTeam();
             if (team == null) {
                 throw new BadRequestException("You must be part of a team to answer in TEAM mode");
             }
@@ -558,7 +584,121 @@ public class QuizEngineService {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
+    public QuizStateDto startQuizForParticipant(Long quizId, Long userId) {
+        Quiz quiz = getQuiz(quizId);
+        List<Question> questions = questionRepository.findByQuizIdOrderByDisplayOrderAsc(quizId);
+        if (questions.isEmpty()) {
+            throw new BadRequestException("Cannot start quiz with zero questions");
+        }
+
+        // Ensure user is registered participant
+        if (!participantRepository.existsByQuizIdAndUserId(quizId, userId)) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+            QuizParticipant participant = QuizParticipant.builder()
+                    .quiz(quiz)
+                    .user(user)
+                    .build();
+            participantRepository.save(participant);
+        }
+
+        // Mark quiz RUNNING if it was in lobby/registration/draft
+        if (quiz.getStatus() == QuizStatus.DRAFT || quiz.getStatus() == QuizStatus.LOBBY || quiz.getStatus() == QuizStatus.REGISTRATION_OPEN) {
+            quiz.setStatus(QuizStatus.RUNNING);
+            if (quiz.getStartedAt() == null) {
+                quiz.setStartedAt(LocalDateTime.now());
+            }
+            quizRepository.save(quiz);
+
+            webSocketService.broadcastQuizEvent(quizId, "QUIZ_STARTED", Map.of(
+                    "quizId", quizId,
+                    "title", quiz.getTitle(),
+                    "totalQuestions", questions.size(),
+                    "startedAt", quiz.getStartedAt()
+            ));
+        }
+
+        return getQuizState(quizId, userId);
+    }
+
+    @Transactional
+    public AnswerResultDto timeoutQuestion(Long quizId, Long questionId, Long userId) {
+        long serverSubmissionTimeMs = System.currentTimeMillis();
+        Quiz quiz = getQuiz(quizId);
+        QuizParticipant participant = participantRepository.findByQuizIdAndUserId(quizId, userId)
+                .orElseThrow(() -> new BadRequestException("User is not registered for this quiz"));
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Question not found: " + questionId));
+        Team team = participant.getTeam();
+
+        QuestionSession session = null;
+        if (quiz.getMode() == QuizMode.TEAM && team != null) {
+            session = sessionRepository.findFirstByQuizIdAndTeamIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(
+                    quizId, team.getId(), questionId, SessionStatus.ACTIVE).orElse(null);
+        } else {
+            session = sessionRepository.findFirstByQuizIdAndUserIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(
+                    quizId, userId, questionId, SessionStatus.ACTIVE).orElse(null);
+        }
+
+        if (session != null) {
+            session.setSessionStatus(SessionStatus.ENDED);
+            session.setServerEndTimeMs(serverSubmissionTimeMs);
+            sessionRepository.save(session);
+        }
+
+        long responseTimeMs = session != null ? Math.max(10, serverSubmissionTimeMs - session.getServerStartTimeMs()) : question.getDurationSeconds() * 1000L;
+
+        // Check if already answered
+        if (quiz.getMode() == QuizMode.TEAM && team != null) {
+            if (session != null && answerRepository.existsByQuestionSessionIdAndTeamIdAndIsOfficialTeamAnswerTrue(session.getId(), team.getId())) {
+                return AnswerResultDto.builder()
+                        .questionId(questionId)
+                        .scoreAwarded(0)
+                        .isCorrect(false)
+                        .status(SubmissionStatus.IGNORED_DUPLICATE)
+                        .build();
+            }
+        } else {
+            if (session != null && answerRepository.existsByQuestionSessionIdAndUserId(session.getId(), userId)) {
+                return AnswerResultDto.builder()
+                        .questionId(questionId)
+                        .scoreAwarded(0)
+                        .isCorrect(false)
+                        .status(SubmissionStatus.ACCEPTED)
+                        .build();
+            }
+        }
+
+        Answer timeoutAnswer = Answer.builder()
+                .quiz(quiz)
+                .question(question)
+                .questionSession(session)
+                .user(participant.getUser())
+                .team(team)
+                .selectedOption(null)
+                .isCorrect(false)
+                .serverSubmissionTimeMs(serverSubmissionTimeMs)
+                .responseTimeMs(responseTimeMs)
+                .scoreAwarded(0)
+                .submissionStatus(SubmissionStatus.REJECTED_TIMEOUT)
+                .isOfficialTeamAnswer(quiz.getMode() == QuizMode.TEAM)
+                .build();
+        answerRepository.save(timeoutAnswer);
+
+        triggerDebouncedLeaderboardBroadcast(quizId);
+
+        return AnswerResultDto.builder()
+                .questionId(questionId)
+                .responseTimeMs(responseTimeMs)
+                .scoreAwarded(0)
+                .isCorrect(false)
+                .status(SubmissionStatus.REJECTED_TIMEOUT)
+                .message("Time expired for this question")
+                .build();
+    }
+
+    @Transactional
     public QuizStateDto getQuizState(Long quizId, Long userId) {
         Quiz quiz = getQuiz(quizId);
         List<Question> questions = questionRepository.findByQuizIdOrderByDisplayOrderAsc(quizId);
@@ -567,8 +707,19 @@ public class QuizEngineService {
         Optional<QuizParticipant> participantOpt = participantRepository.findByQuizIdAndUserId(quizId, userId);
         Team team = participantOpt.flatMap(p -> Optional.ofNullable(p.getTeam())).orElse(null);
 
-        Optional<QuestionSession> activeSessionOpt = sessionRepository
-                .findFirstByQuizIdAndSessionStatusOrderByCreatedAtDesc(quizId, SessionStatus.ACTIVE);
+        // Find all answers already submitted by this user (or team)
+        List<Answer> answers;
+        if (quiz.getMode() == QuizMode.TEAM && team != null) {
+            answers = answerRepository.findByQuizIdAndTeamId(quizId, team.getId()).stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getIsOfficialTeamAnswer()))
+                    .collect(Collectors.toList());
+        } else {
+            answers = answerRepository.findByQuizIdAndUserId(quizId, userId);
+        }
+
+        Set<Long> answeredQuestionIds = answers.stream()
+                .map(a -> a.getQuestion().getId())
+                .collect(Collectors.toSet());
 
         PublicQuestionDto currentPublicQuestion = null;
         Long serverQuestionStartTimeMs = null;
@@ -576,60 +727,71 @@ public class QuizEngineService {
         Long remainingTimeMs = null;
         boolean alreadyAnswered = false;
         AnswerResultDto myAnswerResult = null;
+        int currentQuestionIndex = 1;
+        QuizStatus status = quiz.getStatus();
 
         long serverCurrentTimeMs = System.currentTimeMillis();
 
-        if (activeSessionOpt.isPresent()) {
-            QuestionSession session = activeSessionOpt.get();
-            Question currentQuestion = session.getQuestion();
-            serverQuestionStartTimeMs = session.getServerStartTimeMs();
-            questionDurationMs = session.getDurationMs();
-
-            long elapsed = serverCurrentTimeMs - serverQuestionStartTimeMs;
-            remainingTimeMs = Math.max(0, questionDurationMs - elapsed);
-
-            currentPublicQuestion = questionService.mapToPublicDto(
-                    currentQuestion,
-                    totalQuestions,
-                    Boolean.TRUE.equals(quiz.getRandomizeOptions())
-            );
-
-            // Check if already answered
-            if (quiz.getMode() == QuizMode.TEAM && team != null) {
-                Optional<Answer> officialTeamAns = answerRepository
-                        .findFirstByQuestionSessionIdAndTeamIdAndIsOfficialTeamAnswerTrue(session.getId(), team.getId());
-                if (officialTeamAns.isPresent()) {
-                    alreadyAnswered = true;
-                    Answer ans = officialTeamAns.get();
-                    myAnswerResult = AnswerResultDto.builder()
-                            .questionId(currentQuestion.getId())
-                            .selectedOptionId(ans.getSelectedOption() != null ? ans.getSelectedOption().getId() : null)
-                            .responseTimeMs(ans.getResponseTimeMs())
-                            .scoreAwarded(ans.getScoreAwarded())
-                            .isCorrect(Boolean.TRUE.equals(quiz.getImmediateFeedback()) ? ans.getIsCorrect() : null)
-                            .status(ans.getSubmissionStatus())
-                            .isOfficialTeamAnswer(true)
-                            .submitterName(ans.getUser().getFullName())
-                            .message("Team answer submitted by " + ans.getUser().getFullName())
-                            .build();
+        if (!questions.isEmpty() && answeredQuestionIds.size() >= totalQuestions) {
+            // Participant has answered all questions!
+            status = QuizStatus.COMPLETED;
+            currentQuestionIndex = totalQuestions;
+            alreadyAnswered = true;
+        } else if (!questions.isEmpty()) {
+            // Find first unanswered question
+            Question nextQuestion = null;
+            for (int i = 0; i < questions.size(); i++) {
+                if (!answeredQuestionIds.contains(questions.get(i).getId())) {
+                    nextQuestion = questions.get(i);
+                    currentQuestionIndex = i + 1;
+                    break;
                 }
-            } else {
-                Optional<Answer> userAns = answerRepository.findByQuestionSessionIdAndUserId(session.getId(), userId);
-                if (userAns.isPresent()) {
-                    alreadyAnswered = true;
-                    Answer ans = userAns.get();
-                    myAnswerResult = AnswerResultDto.builder()
-                            .questionId(currentQuestion.getId())
-                            .selectedOptionId(ans.getSelectedOption() != null ? ans.getSelectedOption().getId() : null)
-                            .responseTimeMs(ans.getResponseTimeMs())
-                            .scoreAwarded(ans.getScoreAwarded())
-                            .isCorrect(Boolean.TRUE.equals(quiz.getImmediateFeedback()) ? ans.getIsCorrect() : null)
-                            .status(ans.getSubmissionStatus())
-                            .isOfficialTeamAnswer(false)
-                            .submitterName(ans.getUser().getFullName())
-                            .message("Answer recorded")
-                            .build();
+            }
+
+            if (nextQuestion != null) {
+                // Find or create active session for this question and participant/team
+                QuestionSession session = null;
+                if (quiz.getMode() == QuizMode.TEAM && team != null) {
+                    session = sessionRepository.findFirstByQuizIdAndTeamIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(
+                            quizId, team.getId(), nextQuestion.getId(), SessionStatus.ACTIVE).orElse(null);
+                } else {
+                    session = sessionRepository.findFirstByQuizIdAndUserIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(
+                            quizId, userId, nextQuestion.getId(), SessionStatus.ACTIVE).orElse(null);
                 }
+
+                // Fallback to global active session
+                if (session == null) {
+                    session = sessionRepository.findByQuizIdAndQuestionIdAndSessionStatus(
+                            quizId, nextQuestion.getId(), SessionStatus.ACTIVE).orElse(null);
+                }
+
+                if (session == null) {
+                    // Start individual participant session for this question
+                    long durationMs = nextQuestion.getDurationSeconds() * 1000L;
+                    session = QuestionSession.builder()
+                            .quiz(quiz)
+                            .question(nextQuestion)
+                            .user(participantOpt.map(QuizParticipant::getUser).orElse(null))
+                            .team(team)
+                            .sessionStatus(SessionStatus.ACTIVE)
+                            .serverStartTimeMs(serverCurrentTimeMs)
+                            .durationMs(durationMs)
+                            .build();
+                    session = sessionRepository.save(session);
+                }
+
+                serverQuestionStartTimeMs = session.getServerStartTimeMs();
+                questionDurationMs = session.getDurationMs();
+                long elapsed = serverCurrentTimeMs - serverQuestionStartTimeMs;
+                remainingTimeMs = Math.max(0, questionDurationMs - elapsed);
+
+                currentPublicQuestion = questionService.mapToPublicDto(
+                        nextQuestion,
+                        totalQuestions,
+                        Boolean.TRUE.equals(quiz.getRandomizeOptions())
+                );
+                status = QuizStatus.QUESTION_ACTIVE;
+                alreadyAnswered = false;
             }
         }
 
@@ -649,9 +811,9 @@ public class QuizEngineService {
         return QuizStateDto.builder()
                 .quizId(quiz.getId())
                 .title(quiz.getTitle())
-                .status(quiz.getStatus())
+                .status(status)
                 .mode(quiz.getMode())
-                .currentQuestionIndex(quiz.getCurrentQuestionIndex())
+                .currentQuestionIndex(currentQuestionIndex)
                 .totalQuestions(totalQuestions)
                 .fullscreenRequired(Boolean.TRUE.equals(quiz.getFullscreenRequired()))
                 .currentQuestion(currentPublicQuestion)

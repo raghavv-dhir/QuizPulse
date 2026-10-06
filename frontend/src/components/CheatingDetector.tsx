@@ -40,15 +40,10 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
 
   // Load persistent warnings from sessionStorage so refresh cannot bypass warnings
   const storageKeyWarnings = `quiz_${quizId}_integrity_warnings`;
-  const storageKeyDisqualified = `quiz_${quizId}_integrity_disqualified`;
 
   const [warningCount, setWarningCount] = useState<number>(() => {
     const saved = sessionStorage.getItem(storageKeyWarnings);
     return saved ? parseInt(saved, 10) : 0;
-  });
-
-  const [isDisqualified, setIsDisqualified] = useState<boolean>(() => {
-    return sessionStorage.getItem(storageKeyDisqualified) === 'true';
   });
 
   const [activeModal, setActiveModal] = useState<{
@@ -65,13 +60,6 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
   // Debounce ref to coalesce cascading events (e.g. blur + visibilitychange + mouseleave on Alt+Tab)
   const lastIncidentTimeRef = useRef<number>(0);
   const DEBOUNCE_COALESCE_MS = 2500;
-
-  // Sync disqualification to parent if already disqualified
-  useEffect(() => {
-    if (isDisqualified && onTerminated) {
-      onTerminated();
-    }
-  }, [isDisqualified, onTerminated]);
 
   // Handle countdown timer for modal acknowledgment
   useEffect(() => {
@@ -92,7 +80,7 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
       }
       lastIncidentTimeRef.current = now;
 
-      // Calculate next warning count (capped at 3)
+      // Calculate next warning count
       const currentWarnings = parseInt(sessionStorage.getItem(storageKeyWarnings) || '0', 10);
       const nextCount = currentWarnings + 1;
 
@@ -115,46 +103,26 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
         navigator.vibrate([200, 100, 200]);
       }
 
-      // Check for disqualification (3 warnings reached)
-      if (nextCount >= 3) {
-        sessionStorage.setItem(storageKeyDisqualified, 'true');
-        setIsDisqualified(true);
-        setActiveModal(null);
-        if (onTerminated) onTerminated();
+      // Show Warning Modal (never terminate - warnings only)
+      setActiveModal({
+        warningNumber: nextCount,
+        title,
+        details,
+        type,
+      });
+      setAckCountdown(2); // Force 2 seconds cooldown to ensure reading
 
-        try {
-          await api.quizzes.reportCheating(
-            quizId,
-            'DISQUALIFIED',
-            `Participant exceeded 3 warnings: ${details} (${type})`
-          );
-        } catch (e) {
-          console.error('Failed to report disqualification', e);
-        }
-      } else {
-        // Show Warning Modal (Warning 1 or 2)
-        setActiveModal({
-          warningNumber: nextCount,
-          title,
-          details,
-          type,
-        });
-        setAckCountdown(2); // Force 2 seconds cooldown to ensure reading
-
-        try {
-          await api.quizzes.reportCheating(quizId, type, details);
-        } catch (e) {
-          console.error('Failed to report integrity event', e);
-        }
+      try {
+        await api.quizzes.reportCheating(quizId, type, details);
+      } catch (e) {
+        console.error('Failed to report integrity event', e);
       }
     },
-    [quizId, storageKeyWarnings, storageKeyDisqualified, onTerminated]
+    [quizId, storageKeyWarnings]
   );
 
   // Setup Anti-Cheating Event Listeners
   useEffect(() => {
-    if (isDisqualified) return;
-
     // 1. Tab Switch / Document Visibility Change
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -328,7 +296,7 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
       document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
       window.removeEventListener('resize', handleResize);
     };
-  }, [triggerViolation, isDisqualified, fullscreenRequired]);
+  }, [triggerViolation, fullscreenRequired]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -344,73 +312,6 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
     if (ackCountdown > 0) return;
     setActiveModal(null);
   };
-
-  // -------------------------------------------------------------
-  // RENDER: DISQUALIFIED TERMINATION SCREEN (TERMINATED AFTER 3 WARNINGS)
-  // -------------------------------------------------------------
-  if (isDisqualified) {
-    return (
-      <div className="fixed inset-0 z-[9999] bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4">
-        <div className="ui-card max-w-lg w-full bg-white rounded-3xl p-6 sm:p-8 border-2 border-rose-500 shadow-2xl shadow-rose-950/50 text-center space-y-6 animate-scale-in">
-          
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-inner ring-8 ring-rose-50">
-            <XCircle className="w-10 h-10 sm:w-12 sm:h-12 stroke-[2.2]" />
-          </div>
-
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-black uppercase tracking-wider">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Test Terminated</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Disqualified for Integrity Violations
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-md mx-auto">
-              Your test has been automatically stopped and locked. You have reached the maximum threshold of <strong>3 anti-cheating warnings</strong>.
-            </p>
-          </div>
-
-          {/* Audit Breakdown Card */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-left space-y-2.5">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-700 pb-2 border-b border-slate-200">
-              <span>Incident Telemetry</span>
-              <span className="text-rose-600 font-black">3 of 3 Warnings Triggered</span>
-            </div>
-            <ul className="space-y-2 text-[11px] text-slate-600">
-              <li className="flex items-center justify-between">
-                <span className="font-semibold text-slate-800">Violation Status:</span>
-                <span className="badge bg-rose-100 text-rose-800 font-bold">DISQUALIFIED</span>
-              </li>
-              <li className="flex items-center justify-between">
-                <span className="font-semibold text-slate-800">Host Notification:</span>
-                <span className="text-emerald-700 font-bold flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" /> Logged to Quiz Master
-                </span>
-              </li>
-              <li className="flex items-center justify-between">
-                <span className="font-semibold text-slate-800">Submissions Locked:</span>
-                <span className="text-rose-700 font-bold">Answer capability disabled</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="pt-2">
-            <button
-              onClick={() => navigate('/quizzes')}
-              className="btn-primary w-full !h-12 text-sm bg-gradient-to-r from-slate-800 to-slate-900 shadow-lg shadow-slate-900/20"
-            >
-              <span>Return to Competitions</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          <p className="text-[11px] text-slate-400">
-            Audit ID: {quizId}-DISQ-{Date.now().toString(36).toUpperCase()}
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -431,7 +332,7 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
             <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
           )}
           <span>
-            Integrity Guard: <strong>{warningCount}/3</strong> Warnings
+            Integrity Guard: <strong>{warningCount}</strong> Warning{warningCount === 1 ? '' : 's'}
           </span>
         </div>
       </div>
@@ -452,7 +353,7 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
       )}
 
       {/* -------------------------------------------------------------
-          HIGH-URGENCY WARNING MODAL (WARNING 1 OR WARNING 2 OF 3)
+          HIGH-VISIBILITY WARNING MODAL (WARNINGS ONLY - NO TERMINATION)
       ------------------------------------------------------------- */}
       {activeModal && (
         <div className="fixed inset-0 z-[9990] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -476,7 +377,7 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
                   ? 'bg-amber-100 text-amber-800'
                   : 'bg-rose-100 text-rose-800'
               }`}>
-                <span>⚠️ Warning {activeModal.warningNumber} of 3</span>
+                <span>⚠️ Integrity Warning #{activeModal.warningNumber}</span>
               </div>
               <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                 {activeModal.title}
@@ -486,26 +387,14 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
               </p>
             </div>
 
-            {/* Warning Progression Visual Bar */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2.5 text-left">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                <span>Violations Allowed Before Disqualification:</span>
-                <span className="font-black text-slate-900">{3 - activeModal.warningNumber} Remaining</span>
+            {/* Warning Advisory Notice */}
+            <div className="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-4 space-y-2 text-left">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Academic Integrity Policy Reminder</span>
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="h-2.5 rounded-full bg-rose-500" />
-                <div className={`h-2.5 rounded-full ${activeModal.warningNumber >= 2 ? 'bg-rose-500' : 'bg-slate-200'}`} />
-                <div className={`h-2.5 rounded-full ${activeModal.warningNumber >= 3 ? 'bg-rose-500' : 'bg-slate-200'}`} />
-              </div>
-              <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
-                {activeModal.warningNumber === 1 && (
-                  <span>Next violation will trigger your final warning before disqualification.</span>
-                )}
-                {activeModal.warningNumber === 2 && (
-                  <span className="text-rose-600 font-bold">
-                    CRITICAL: Exactly ONE violation remaining. Any additional violation will immediately terminate your test.
-                  </span>
-                )}
+              <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
+                This test is monitored for fairness. Leaving the window, switching tabs, or using external tools is logged and reported to the host. Please remain focused on your exam screen.
               </p>
             </div>
 

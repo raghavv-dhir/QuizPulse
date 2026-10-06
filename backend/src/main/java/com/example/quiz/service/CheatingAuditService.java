@@ -60,10 +60,10 @@ public class CheatingAuditService {
 
         cheatingLogRepository.save(logEntry);
         long warningCount = cheatingLogRepository.countByQuizIdAndUserId(quizId, userId);
-        boolean disqualified = warningCount >= 3 || eventType == CheatingEventType.DISQUALIFIED;
+        boolean disqualified = false; // Warnings only, termination removed
 
-        log.warn("Cheating event recorded: user={}, quiz={}, event={}, warnings={}, disqualified={}, details={}",
-                user.getUsername(), quiz.getTitle(), eventType, warningCount, disqualified, sanitizedDetails);
+        log.warn("Cheating event recorded: user={}, quiz={}, event={}, warnings={}, details={}",
+                user.getUsername(), quiz.getTitle(), eventType, warningCount, sanitizedDetails);
 
         // Broadcast to quiz session so Quiz Master / Host / Room receives live telemetry
         Map<String, Object> payload = new HashMap<>();
@@ -74,16 +74,16 @@ public class CheatingAuditService {
         payload.put("eventType", eventType.name());
         payload.put("details", sanitizedDetails);
         payload.put("warningCount", warningCount);
-        payload.put("disqualified", disqualified);
+        payload.put("disqualified", false);
         payload.put("timestamp", System.currentTimeMillis());
 
-        webSocketService.broadcastQuizEvent(quizId, disqualified ? "PARTICIPANT_DISQUALIFIED" : "PARTICIPANT_CHEATING_ALERT", payload);
+        webSocketService.broadcastQuizEvent(quizId, "PARTICIPANT_CHEATING_ALERT", payload);
 
         Map<String, Object> response = new HashMap<>();
         response.put("warningCount", warningCount);
-        response.put("disqualified", disqualified);
+        response.put("disqualified", false);
         response.put("eventType", eventType.name());
-        response.put("message", disqualified ? "Test terminated due to 3 integrity warnings." : "Warning recorded.");
+        response.put("message", "Integrity warning recorded (" + warningCount + ").");
         return response;
     }
 

@@ -72,6 +72,15 @@ public class QuizController {
         return ResponseEntity.ok(ApiResponse.success("Successfully left the quiz", null));
     }
 
+    @PostMapping("/{id}/start")
+    @Operation(summary = "Start the quiz for participant (enables flexible arrival self-paced starting)")
+    public ResponseEntity<ApiResponse<QuizStateDto>> startQuiz(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        QuizStateDto state = quizEngineService.startQuizForParticipant(id, principal.getId());
+        return ResponseEntity.ok(ApiResponse.success("Quiz started", state));
+    }
+
     @GetMapping("/{id}/state")
     @Operation(summary = "Get the authoritative state for reconnection (question, elapsed/remaining time, answer status)")
     public ResponseEntity<ApiResponse<QuizStateDto>> getQuizState(
@@ -79,6 +88,16 @@ public class QuizController {
             @AuthenticationPrincipal UserPrincipal principal) {
         QuizStateDto state = quizEngineService.getQuizState(id, principal.getId());
         return ResponseEntity.ok(ApiResponse.success(state));
+    }
+
+    @PostMapping("/{id}/questions/{questionId}/timeout")
+    @Operation(summary = "Handle question timeout when timer expires")
+    public ResponseEntity<ApiResponse<AnswerResultDto>> timeoutQuestion(
+            @PathVariable Long id,
+            @PathVariable Long questionId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        AnswerResultDto result = quizEngineService.timeoutQuestion(id, questionId, principal.getId());
+        return ResponseEntity.ok(ApiResponse.success(result.getMessage(), result));
     }
 
     @PostMapping("/{id}/questions/{questionId}/answer")

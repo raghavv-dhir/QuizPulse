@@ -291,14 +291,21 @@ export const QuizControlRoomPage: React.FC = () => {
 
             {/* Launch / Start / Next Question Controls */}
             {(quiz.status === 'LOBBY' || quiz.status === 'REGISTRATION_OPEN' || quiz.status === 'DRAFT') && (
-              <button
-                disabled={actionLoading || !quiz.questions || quiz.questions.length === 0}
-                onClick={() => handleAction(() => api.admin.startQuiz(quizId))}
-                className="btn-primary text-xs !h-11 shadow-md shadow-indigo-500/25 !px-6"
-              >
-                <Play className="w-4 h-4 fill-white" />
-                <span>START QUIZ 🚀</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  Students Can Self-Start Anytime
+                </span>
+                <button
+                  disabled={actionLoading || !quiz.questions || quiz.questions.length === 0}
+                  onClick={() => handleAction(() => api.admin.startQuiz(quizId))}
+                  className="btn-primary text-xs !h-11 shadow-md shadow-indigo-500/25 !px-6"
+                  title="Broadcast global start signal to all connected participants"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                  <span>BROADCAST START 🚀</span>
+                </button>
+              </div>
             )}
 
             {isLive && (
