@@ -35,7 +35,7 @@ export const ParticipantLobbyPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [startingQuiz, setStartingQuiz] = useState(false);
 
-  // Mandatory Pre-test Briefing State
+  // Mandatory Pre-test Briefing State - opens if not agreed yet
   const [showBriefingModal, setShowBriefingModal] = useState<boolean>(() => {
     return sessionStorage.getItem(`quiz_${quizId}_briefing_cleared`) !== 'true';
   });
@@ -58,11 +58,6 @@ export const ParticipantLobbyPage: React.FC = () => {
       setQuiz(quizData);
       setLivePlayerCount(quizData.participantCount || 1);
 
-      if (sessionStorage.getItem(`quiz_${quizId}_started`) === 'true') {
-        navigate(`/quizzes/${quizId}/live`);
-        return;
-      }
-
       if (quizData.mode === 'TEAM') {
         const teams = await api.teams.list(quizId);
         const myTeam = teams.find((t) => t.members?.some((m) => m.userId === user?.id));
@@ -84,7 +79,7 @@ export const ParticipantLobbyPage: React.FC = () => {
   };
 
   const handleStudentStartQuiz = async () => {
-    // If briefing not cleared yet, open briefing modal
+    // If briefing not cleared yet, open briefing modal first
     if (sessionStorage.getItem(`quiz_${quizId}_briefing_cleared`) !== 'true') {
       setShowBriefingModal(true);
       return;
@@ -104,19 +99,9 @@ export const ParticipantLobbyPage: React.FC = () => {
     }
   };
 
-  const handleBriefingCleared = async () => {
+  const handleBriefingCleared = () => {
+    sessionStorage.setItem(`quiz_${quizId}_briefing_cleared`, 'true');
     setShowBriefingModal(false);
-    try {
-      setStartingQuiz(true);
-      await api.quizzes.start(quizId);
-      sessionStorage.setItem(`quiz_${quizId}_started`, 'true');
-      navigate(`/quizzes/${quizId}/live`);
-    } catch {
-      sessionStorage.setItem(`quiz_${quizId}_started`, 'true');
-      navigate(`/quizzes/${quizId}/live`);
-    } finally {
-      setStartingQuiz(false);
-    }
   };
 
   useEffect(() => {
@@ -127,8 +112,10 @@ export const ParticipantLobbyPage: React.FC = () => {
     quizId,
     teamId: userTeam?.id,
     onEvent: (event: QuizEventMessage) => {
-      if (event.eventType === 'QUIZ_STARTED' || event.eventType === 'QUESTION_STARTED') {
-        navigate(`/quizzes/${quizId}/live`);
+      // Do NOT force-navigate late students away on QUIZ_STARTED/QUESTION_STARTED.
+      // Students self-start at their own pace using the "START QUIZ" button.
+      if (event.eventType === 'QUIZ_STARTED') {
+        setQuiz((prev) => (prev ? { ...prev, status: 'RUNNING' } : null));
       } else if (event.eventType === 'PARTICIPANT_JOINED' || event.eventType === 'PARTICIPANT_LEFT') {
         if (event.payload?.participantCount !== undefined) {
           setLivePlayerCount(event.payload.participantCount);

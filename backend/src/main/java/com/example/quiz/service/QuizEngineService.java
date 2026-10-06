@@ -408,14 +408,10 @@ public class QuizEngineService {
         if (quiz.getMode() == QuizMode.TEAM && team != null) {
             session = sessionRepository.findFirstByQuizIdAndTeamIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(
                     quizId, team.getId(), questionId, SessionStatus.ACTIVE)
-                    .or(() -> sessionRepository.findByQuizIdAndQuestionIdAndSessionStatus(quizId, questionId, SessionStatus.ACTIVE))
-                    .or(() -> sessionRepository.findFirstByQuizIdAndSessionStatusOrderByCreatedAtDesc(quizId, SessionStatus.ACTIVE))
                     .orElse(null);
         } else {
             session = sessionRepository.findFirstByQuizIdAndUserIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(
                     quizId, userId, questionId, SessionStatus.ACTIVE)
-                    .or(() -> sessionRepository.findByQuizIdAndQuestionIdAndSessionStatus(quizId, questionId, SessionStatus.ACTIVE))
-                    .or(() -> sessionRepository.findFirstByQuizIdAndSessionStatusOrderByCreatedAtDesc(quizId, SessionStatus.ACTIVE))
                     .orElse(null);
         }
 
@@ -450,11 +446,11 @@ public class QuizEngineService {
                 throw new BadRequestException("You must be part of a team to answer in TEAM mode");
             }
 
-            // Concurrency lock per team per question session
-            String teamLock = ("team-quiz-lock-" + team.getId() + "-sess-" + session.getId()).intern();
+            // Concurrency lock per team per question
+            String teamLock = ("team-quiz-lock-" + quizId + "-team-" + team.getId() + "-q-" + questionId).intern();
             synchronized (teamLock) {
                 Optional<Answer> existingOfficial = answerRepository
-                        .findFirstByQuestionSessionIdAndTeamIdAndIsOfficialTeamAnswerTrue(session.getId(), team.getId());
+                        .findFirstByQuizIdAndQuestionIdAndTeamIdAndIsOfficialTeamAnswerTrue(quizId, questionId, team.getId());
 
                 if (existingOfficial.isPresent()) {
                     // Ignored duplicate submission from teammate
@@ -751,20 +747,14 @@ public class QuizEngineService {
             }
 
             if (nextQuestion != null) {
-                // Find or create active session for this question and participant/team
+                // Session for this question and participant/team
                 QuestionSession session = null;
                 if (quiz.getMode() == QuizMode.TEAM && team != null) {
                     session = sessionRepository.findFirstByQuizIdAndTeamIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(
                             quizId, team.getId(), nextQuestion.getId(), SessionStatus.ACTIVE).orElse(null);
-                } else {
+                } else if (userId != null) {
                     session = sessionRepository.findFirstByQuizIdAndUserIdAndQuestionIdAndSessionStatusOrderByCreatedAtDesc(
                             quizId, userId, nextQuestion.getId(), SessionStatus.ACTIVE).orElse(null);
-                }
-
-                // Fallback to global active session
-                if (session == null) {
-                    session = sessionRepository.findByQuizIdAndQuestionIdAndSessionStatus(
-                            quizId, nextQuestion.getId(), SessionStatus.ACTIVE).orElse(null);
                 }
 
                 if (session == null) {

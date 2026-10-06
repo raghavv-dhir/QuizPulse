@@ -1,50 +1,70 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Clock } from 'lucide-react';
 
 interface CountdownTimerProps {
-  serverStartTimeMs: number;
+  initialRemainingMs?: number;
   durationMs: number;
+  serverStartTimeMs?: number;
+  serverCurrentTimeMs?: number;
   onExpire?: () => void;
   isPaused?: boolean;
 }
 
 export const CountdownTimer: React.FC<CountdownTimerProps> = ({
-  serverStartTimeMs,
+  initialRemainingMs,
   durationMs,
+  serverStartTimeMs,
+  serverCurrentTimeMs,
   onExpire,
   isPaused = false,
 }) => {
-  const [remainingMs, setRemainingMs] = useState<number>(() => {
-    const elapsed = Date.now() - serverStartTimeMs;
-    return Math.max(0, durationMs - elapsed);
-  });
+  const computeInitialMs = (): number => {
+    // 1. Authoritative remaining time sent by backend state
+    if (typeof initialRemainingMs === 'number' && initialRemainingMs > 0) {
+      return Math.min(durationMs, initialRemainingMs);
+    }
+    // 2. Relative server elapsed delta (zero clock skew since both timestamps from server)
+    if (serverStartTimeMs && serverCurrentTimeMs && serverCurrentTimeMs >= serverStartTimeMs) {
+      const serverElapsed = serverCurrentTimeMs - serverStartTimeMs;
+      if (serverElapsed < durationMs) {
+        return durationMs - serverElapsed;
+      }
+    }
+    // 3. Fallback to full question duration
+    return durationMs > 0 ? durationMs : 45000;
+  };
+
+  const [remainingMs, setRemainingMs] = useState<number>(computeInitialMs);
+  const onExpireCalledRef = useRef<boolean>(false);
 
   useEffect(() => {
-    const elapsed = Date.now() - serverStartTimeMs;
-    const initialLeft = Math.max(0, durationMs - elapsed);
-    setRemainingMs(initialLeft);
+    onExpireCalledRef.current = false;
+    const totalMsToRun = computeInitialMs();
+    setRemainingMs(totalMsToRun);
 
     if (isPaused) return;
 
+    const startLocal = performance.now();
+
     const interval = setInterval(() => {
-      const now = Date.now();
-      const currentElapsed = now - serverStartTimeMs;
-      const left = Math.max(0, durationMs - currentElapsed);
+      const elapsedLocal = performance.now() - startLocal;
+      const left = Math.max(0, totalMsToRun - elapsedLocal);
 
       setRemainingMs(left);
 
-      if (left <= 0) {
+      if (left <= 0 && !onExpireCalledRef.current) {
+        onExpireCalledRef.current = true;
         clearInterval(interval);
         if (onExpire) {
           onExpire();
         }
       }
-    }, 40);
+    }, 50);
 
     return () => clearInterval(interval);
-  }, [serverStartTimeMs, durationMs, isPaused, onExpire]);
+  }, [durationMs, initialRemainingMs, serverStartTimeMs, serverCurrentTimeMs, isPaused]);
 
-  const percentage = Math.min(100, Math.max(0, (remainingMs / durationMs) * 100));
+  const percentage = durationMs > 0 ? Math.min(100, Math.max(0, (remainingMs / durationMs) * 100)) : 100;
 
   const totalSeconds = remainingMs / 1000;
   const wholeSec = Math.floor(totalSeconds);

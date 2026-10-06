@@ -18,7 +18,11 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
 
     Optional<Answer> findFirstByQuestionSessionIdAndTeamIdAndIsOfficialTeamAnswerTrue(Long questionSessionId, Long teamId);
 
+    Optional<Answer> findFirstByQuizIdAndQuestionIdAndTeamIdAndIsOfficialTeamAnswerTrue(Long quizId, Long questionId, Long teamId);
+
     boolean existsByQuestionSessionIdAndTeamIdAndIsOfficialTeamAnswerTrue(Long questionSessionId, Long teamId);
+
+    boolean existsByQuizIdAndQuestionIdAndTeamIdAndIsOfficialTeamAnswerTrue(Long quizId, Long questionId, Long teamId);
 
     List<Answer> findByQuestionSessionId(Long questionSessionId);
 

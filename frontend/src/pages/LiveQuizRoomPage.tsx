@@ -51,6 +51,8 @@ export const LiveQuizRoomPage: React.FC = () => {
   const loadAuthoritativeState = async () => {
     try {
       setLoading(true);
+      setErrorMessage(null);
+      setQuestionEndedData(null);
       const state = await api.quizzes.getState(quizId);
       setQuizState(state);
 
@@ -71,6 +73,8 @@ export const LiveQuizRoomPage: React.FC = () => {
         setIsAnswerLocked(false);
         setSubmissionResult(null);
         setSelectedOptionId(null);
+        setLockedByUserName(undefined);
+        setLockedResponseTimeMs(undefined);
       }
     } catch (e: any) {
       console.error('Failed to load state', e);
@@ -88,33 +92,12 @@ export const LiveQuizRoomPage: React.FC = () => {
     quizId,
     teamId: quizState?.myTeam?.id,
     onEvent: (event: QuizEventMessage) => {
-      if (event.eventType === 'QUESTION_STARTED') {
-        const { question, questionIndex, totalQuestions, serverStartTimeMs, durationMs } = event.payload;
-        setQuizState((prev) =>
-          prev
-            ? {
-                ...prev,
-                status: 'QUESTION_ACTIVE',
-                currentQuestionIndex: questionIndex,
-                totalQuestions: totalQuestions,
-                currentQuestion: question,
-                serverQuestionStartTimeMs: serverStartTimeMs || Date.now(),
-                questionDurationMs: durationMs || (question?.durationSeconds ? question.durationSeconds * 1000 : 15000),
-                alreadyAnswered: false,
-                myAnswer: undefined,
-              }
-            : null
-        );
-        setSelectedOptionId(null);
-        setSubmissionResult(null);
-        setIsAnswerLocked(false);
-        setLockedByUserName(undefined);
-        setLockedResponseTimeMs(undefined);
-        setQuestionEndedData(null);
-        setErrorMessage(null);
-        setIsPaused(false);
-      } else if (event.eventType === 'QUESTION_ENDED') {
-        setQuestionEndedData(event.payload);
+      if (event.eventType === 'QUESTION_ENDED') {
+        // Only end if event matches the participant's active question
+        if (quizState?.currentQuestion && event.payload.questionId === quizState.currentQuestion.id) {
+          setQuestionEndedData(event.payload);
+          setIsAnswerLocked(true);
+        }
         if (event.payload.leaderboard) {
           setQuizState((prev) => (prev ? { ...prev, leaderboard: event.payload.leaderboard } : null));
         }
@@ -123,6 +106,9 @@ export const LiveQuizRoomPage: React.FC = () => {
         setIsAnswerLocked(true);
         setLockedByUserName(teamStatus.submittedByUserName);
         setLockedResponseTimeMs(teamStatus.responseTimeMs);
+        setTimeout(() => {
+          loadAuthoritativeState();
+        }, 2500);
       } else if (event.eventType === 'LEADERBOARD_UPDATED') {
         setQuizState((prev) => (prev ? { ...prev, leaderboard: event.payload } : null));
       } else if (event.eventType === 'QUIZ_PAUSED') {
@@ -130,11 +116,17 @@ export const LiveQuizRoomPage: React.FC = () => {
       } else if (event.eventType === 'QUIZ_RESUMED') {
         setIsPaused(false);
       } else if (event.eventType === 'QUIZ_COMPLETED' || event.eventType === 'QUIZ_FINISHED') {
-        setQuizFinished(true);
-        setQuizState((prev) => (prev ? { ...prev, status: 'COMPLETED' } : null));
-        setTimeout(() => {
-          navigate(`/quizzes/${quizId}/results`);
-        }, 3000);
+        if (event.payload?.leaderboard) {
+          setQuizState((prev) => (prev ? { ...prev, leaderboard: event.payload.leaderboard } : null));
+        }
+        // Only navigate out if participant has answered all questions or is at end
+        if (!quizState || quizState.currentQuestionIndex >= quizState.totalQuestions) {
+          setQuizFinished(true);
+          setQuizState((prev) => (prev ? { ...prev, status: 'COMPLETED' } : null));
+          setTimeout(() => {
+            navigate(`/quizzes/${quizId}/results`);
+          }, 3000);
+        }
       }
     },
   });
@@ -323,6 +315,7 @@ export const LiveQuizRoomPage: React.FC = () => {
                     maxScore={currentQuestion.maxScore}
                     serverStartTimeMs={serverQuestionStartTimeMs}
                     durationMs={questionDurationMs}
+                    initialRemainingMs={quizState.remainingTimeMs}
                     isAnswered={isAnswerLocked}
                     scoreAwarded={submissionResult?.scoreAwarded}
                   />
@@ -331,7 +324,9 @@ export const LiveQuizRoomPage: React.FC = () => {
                 {/* Big Countdown Timer */}
                 <CountdownTimer
                   key={`timer-${currentQuestion.id}-${quizState.currentQuestionIndex}`}
+                  initialRemainingMs={quizState.remainingTimeMs}
                   serverStartTimeMs={serverQuestionStartTimeMs}
+                  serverCurrentTimeMs={quizState.serverCurrentTimeMs}
                   durationMs={questionDurationMs}
                   onExpire={handleQuestionTimeout}
                   isPaused={isPaused}

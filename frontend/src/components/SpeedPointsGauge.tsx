@@ -3,39 +3,50 @@ import { Zap, Check } from 'lucide-react';
 
 interface SpeedPointsGaugeProps {
   maxScore: number;
-  serverStartTimeMs: number;
+  serverStartTimeMs?: number;
   durationMs: number;
+  initialRemainingMs?: number;
   isAnswered: boolean;
   scoreAwarded?: number;
 }
 
 export const SpeedPointsGauge: React.FC<SpeedPointsGaugeProps> = ({
   maxScore,
-  serverStartTimeMs,
   durationMs,
+  initialRemainingMs,
   isAnswered,
   scoreAwarded,
 }) => {
-  const [currentScorePotential, setCurrentScorePotential] = useState<number>(maxScore);
+  const [currentScorePotential, setCurrentScorePotential] = useState<number>(() => {
+    if (typeof initialRemainingMs === 'number' && initialRemainingMs > 0 && durationMs > 0) {
+      return Math.floor((maxScore * Math.min(durationMs, initialRemainingMs)) / durationMs);
+    }
+    return maxScore;
+  });
 
   useEffect(() => {
     if (isAnswered) return;
 
+    const totalMsToRun = typeof initialRemainingMs === 'number' && initialRemainingMs > 0
+      ? Math.min(durationMs, initialRemainingMs)
+      : (durationMs > 0 ? durationMs : 45000);
+
+    const startLocal = performance.now();
+
     const interval = setInterval(() => {
-      const now = Date.now();
-      const responseTime = Math.max(0, now - serverStartTimeMs);
-      const remainingTime = Math.max(0, durationMs - responseTime);
+      const elapsedLocal = performance.now() - startLocal;
+      const remainingTime = Math.max(0, totalMsToRun - elapsedLocal);
 
       if (remainingTime <= 0) {
         setCurrentScorePotential(0);
       } else {
-        const potential = Math.floor((maxScore * remainingTime) / durationMs);
+        const potential = Math.floor((maxScore * remainingTime) / (durationMs > 0 ? durationMs : 45000));
         setCurrentScorePotential(Math.max(0, Math.min(maxScore, potential)));
       }
     }, 50);
 
     return () => clearInterval(interval);
-  }, [maxScore, serverStartTimeMs, durationMs, isAnswered]);
+  }, [maxScore, durationMs, initialRemainingMs, isAnswered]);
 
   if (isAnswered) {
     return (
