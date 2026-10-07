@@ -6,7 +6,7 @@ export const AARANYA_QUIZ_DESCRIPTION =
 export const AARANYA_QUESTIONS = [
   {
     questionText: 'Which statement most accurately captures the core idea of sustainability?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 1,
     options: [
@@ -18,7 +18,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'The SDGs are best understood as:',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 2,
     options: [
@@ -30,7 +30,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Which intervention follows the strongest waste-reduction principle?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 3,
     options: [
@@ -42,7 +42,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Responsible consumption is best reflected by which decision?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 4,
     options: [
@@ -54,7 +54,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Which situation most clearly demonstrates social responsibility?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 5,
     options: [
@@ -66,7 +66,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'CSR most accurately refers to:',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 6,
     options: [
@@ -78,7 +78,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'ESG is primarily a framework for considering:',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 7,
     options: [
@@ -90,7 +90,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'A campus wants to reduce water consumption without reducing hygiene. Which is the strongest first intervention?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 8,
     options: [
@@ -102,7 +102,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Which option represents the most sustainable energy decision in a suitable context?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 9,
     options: [
@@ -114,7 +114,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Which statement about recycling is most accurate?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 10,
     options: [
@@ -126,7 +126,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'A company incorporates environmental risks, employee welfare and governance practices into major decisions. This most directly demonstrates:',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 11,
     options: [
@@ -138,7 +138,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Which purchasing decision demonstrates the strongest responsible-consumption approach?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 12,
     options: [
@@ -150,7 +150,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Why can urban tree planting contribute to sustainability?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 13,
     options: [
@@ -162,7 +162,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Which action best represents an ethical environmental choice?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 14,
     options: [
@@ -174,7 +174,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'When two sustainable options involve different environmental and social trade-offs, which skill is most important?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 15,
     options: [
@@ -186,7 +186,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Which strategy is most consistent with reducing plastic waste at source?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 16,
     options: [
@@ -198,7 +198,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Biodiversity refers most precisely to:',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 17,
     options: [
@@ -210,7 +210,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Which team behaviour would most improve performance in a sustainability challenge?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 18,
     options: [
@@ -222,7 +222,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Why is long-term thinking essential to sustainability?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 19,
     options: [
@@ -234,7 +234,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Which statement best reflects “Roll the dice. Make the choice. Save the future.”?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 20,
     options: [
@@ -246,7 +246,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'A programme provides scholarships to girls, improves access to quality education and reduces gender-based barriers to schooling. Which SDG combination is most directly represented?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 21,
     options: [
@@ -258,7 +258,7 @@ export const AARANYA_QUESTIONS = [
   },
   {
     questionText: 'Which statement best distinguishes CSR from ESG?',
-    durationSeconds: 45,
+    durationSeconds: 30,
     maxScore: 1000,
     displayOrder: 22,
     options: [

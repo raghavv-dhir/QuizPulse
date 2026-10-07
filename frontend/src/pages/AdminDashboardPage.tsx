@@ -38,6 +38,11 @@ import {
   AARANYA_QUIZ_DESCRIPTION,
   AARANYA_QUESTIONS,
 } from '../data/aaranyaQuizData';
+import {
+  AI_GLADIATORS_QUIZ_TITLE,
+  AI_GLADIATORS_QUIZ_DESCRIPTION,
+  AI_GLADIATORS_QUESTIONS,
+} from '../data/aiGladiatorsQuizData';
 
 interface ManualQuestionDraft {
   id: string;
@@ -59,6 +64,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [quizzesLoading, setQuizzesLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [exemplarLoading, setExemplarLoading] = useState(false);
+  const [aiGladiatorsLoading, setAiGladiatorsLoading] = useState(false);
 
   // Create Quiz Form State
   const [title, setTitle] = useState('');
@@ -151,7 +157,7 @@ export const AdminDashboardPage: React.FC = () => {
         title: AARANYA_QUIZ_TITLE,
         description: AARANYA_QUIZ_DESCRIPTION,
         mode: 'TEAM',
-        defaultQuestionDurationSeconds: 45,
+        defaultQuestionDurationSeconds: 30,
         maxScorePerQuestion: 1000,
         scoringStrategy: 'LINEAR',
         negativeMarking: false,
@@ -170,6 +176,34 @@ export const AdminDashboardPage: React.FC = () => {
       alert(err.message || 'Failed to create exemplar quiz');
     } finally {
       setExemplarLoading(false);
+    }
+  };
+
+  const handleCreateAiGladiatorsQuiz = async () => {
+    try {
+      setAiGladiatorsLoading(true);
+      const created = await api.admin.createQuiz({
+        title: AI_GLADIATORS_QUIZ_TITLE,
+        description: AI_GLADIATORS_QUIZ_DESCRIPTION,
+        mode: 'TEAM',
+        defaultQuestionDurationSeconds: 30,
+        maxScorePerQuestion: 1000,
+        scoringStrategy: 'LINEAR',
+        negativeMarking: false,
+        negativePoints: 0,
+        immediateFeedback: true,
+        allowReconnection: true,
+      });
+
+      for (const q of AI_GLADIATORS_QUESTIONS) {
+        await api.questions.add(created.id, q);
+      }
+
+      navigate(`/admin/quizzes/${created.id}/control`);
+    } catch (err: any) {
+      alert(err.message || 'Failed to create AI Gladiators quiz');
+    } finally {
+      setAiGladiatorsLoading(false);
     }
   };
 
@@ -441,6 +475,15 @@ export const AdminDashboardPage: React.FC = () => {
           {adminTab === 'quizzes' ? (
             <>
               <button
+                onClick={handleCreateAiGladiatorsQuiz}
+                disabled={aiGladiatorsLoading}
+                className="btn-secondary text-xs shadow-sm !h-10 text-indigo-800 bg-indigo-50 hover:bg-indigo-100 border-indigo-200"
+              >
+                <Zap className="w-4 h-4 text-indigo-600" />
+                <span>{aiGladiatorsLoading ? 'Generating AI Gladiators...' : '⚡ Load AI Gladiators Quiz (20 MCQs)'}</span>
+              </button>
+
+              <button
                 onClick={handleCreateExemplarQuiz}
                 disabled={exemplarLoading}
                 className="btn-secondary text-xs shadow-sm !h-10 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border-emerald-200"
@@ -581,14 +624,25 @@ export const AdminDashboardPage: React.FC = () => {
               <p className="text-xs text-slate-500">
                 Generate a ready-to-run demo quiz with 1 click, or create a custom one from scratch.
               </p>
-              <button
-                onClick={handleCreateExemplarQuiz}
-                disabled={exemplarLoading}
-                className="btn-primary text-xs !h-10 mx-auto bg-emerald-600 hover:bg-emerald-700 border-emerald-600 shadow-md shadow-emerald-600/20"
-              >
-                <Sparkles className="w-4 h-4 text-emerald-100" />
-                <span>{exemplarLoading ? 'Generating Aaranya Quiz...' : '🌿 Load Aaranya Sustainability Quiz (22 MCQs)'}</span>
-              </button>
+              <div className="flex flex-col gap-2.5">
+                <button
+                  onClick={handleCreateAiGladiatorsQuiz}
+                  disabled={aiGladiatorsLoading}
+                  className="btn-primary text-xs !h-10 mx-auto shadow-md shadow-indigo-500/20 w-full"
+                >
+                  <Zap className="w-4 h-4 text-amber-300" />
+                  <span>{aiGladiatorsLoading ? 'Generating AI Gladiators...' : '⚡ Load AI Gladiators Quiz (20 MCQs)'}</span>
+                </button>
+
+                <button
+                  onClick={handleCreateExemplarQuiz}
+                  disabled={exemplarLoading}
+                  className="btn-secondary text-xs !h-10 mx-auto bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200 shadow-sm w-full"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <span>{exemplarLoading ? 'Generating Aaranya Quiz...' : '🌿 Load Aaranya Sustainability Quiz (22 MCQs)'}</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

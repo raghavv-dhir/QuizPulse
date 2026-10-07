@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @Order(10)
@@ -45,11 +46,25 @@ public class AaranyaQuizSeeder implements CommandLineRunner {
                 .toList();
 
         // Check if official 22-question version is already seeded
-        boolean alreadyHas22 = oldAaranyaQuizzes.stream()
-                .anyMatch(q -> q.getQuestions() != null && q.getQuestions().size() == 22);
+        Optional<Quiz> existing22Quiz = oldAaranyaQuizzes.stream()
+                .filter(q -> q.getQuestions() != null && q.getQuestions().size() == 22)
+                .findFirst();
 
-        if (alreadyHas22) {
-            log.info("Official 22-question Aaranya Sustainability Quiz already present in database. Skipping creation.");
+        if (existing22Quiz.isPresent()) {
+            Quiz eq = existing22Quiz.get();
+            if (eq.getDefaultQuestionDurationSeconds() == null || eq.getDefaultQuestionDurationSeconds() != 30) {
+                eq.setDefaultQuestionDurationSeconds(30);
+                quizRepository.save(eq);
+            }
+            if (eq.getQuestions() != null) {
+                for (Question q : eq.getQuestions()) {
+                    if (q.getDurationSeconds() == null || q.getDurationSeconds() != 30) {
+                        q.setDurationSeconds(30);
+                        questionRepository.save(q);
+                    }
+                }
+            }
+            log.info("Official 22-question Aaranya Sustainability Quiz already present in database (updated durations to 30s). Skipping creation.");
             return;
         }
 
@@ -86,7 +101,7 @@ public class AaranyaQuizSeeder implements CommandLineRunner {
                 .description("AARANYA – SOCIAL RESPONSIBILITY & SUSTAINABILITY CLUB | ROLL FOR A SUSTAINABLE FUTURE – SUSTAINABILITY ESCAPE ROOM | First Round: Sustainability & Social Responsibility Quiz (22 MCQs | Suggested Duration: 15–20 Minutes | Team Size: 3–5).")
                 .mode(QuizMode.TEAM)
                 .status(QuizStatus.LOBBY) // Ready in lobby for teams to join and host to launch
-                .defaultQuestionDurationSeconds(45)
+                .defaultQuestionDurationSeconds(30)
                 .maxScorePerQuestion(1000)
                 .scoringStrategy(ScoringStrategyType.LINEAR)
                 .negativeMarking(false)
@@ -290,7 +305,7 @@ public class AaranyaQuizSeeder implements CommandLineRunner {
                     .quiz(quiz)
                     .questionText(data[0])
                     .questionType(com.example.quiz.entity.enums.QuestionType.MULTIPLE_CHOICE)
-                    .durationSeconds(45)
+                    .durationSeconds(30)
                     .maxScore(1000)
                     .displayOrder(i + 1)
                     .build();
