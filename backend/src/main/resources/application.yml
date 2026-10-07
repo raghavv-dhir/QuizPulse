@@ -2,10 +2,10 @@ server:
   port: ${PORT:${SERVER_PORT:8080}}
   tomcat:
     threads:
-      max: ${TOMCAT_MAX_THREADS:120}
-      min-spare: ${TOMCAT_MIN_SPARE_THREADS:20}
-    accept-count: ${TOMCAT_ACCEPT_COUNT:200}
-    max-connections: ${TOMCAT_MAX_CONNECTIONS:5000}
+      max: ${TOMCAT_MAX_THREADS:400}
+      min-spare: ${TOMCAT_MIN_SPARE_THREADS:40}
+    accept-count: ${TOMCAT_ACCEPT_COUNT:500}
+    max-connections: ${TOMCAT_MAX_CONNECTIONS:10000}
 
 spring:
   application:
@@ -17,9 +17,9 @@ spring:
     driver-class-name: ${DATABASE_DRIVER:org.h2.Driver}
     hikari:
       pool-name: QuizHikariPool
-      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:20}
-      minimum-idle: ${HIKARI_MIN_IDLE:5}
-      connection-timeout: 20000
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:50}
+      minimum-idle: ${HIKARI_MIN_IDLE:10}
+      connection-timeout: 30000
       idle-timeout: 300000
       max-lifetime: 1800000
   jpa:
@@ -45,9 +45,9 @@ quiz:
   scoring:
     grace-period-ms: ${SCORING_GRACE_PERIOD_MS:300}
   ratelimit:
-    login: ${RATE_LIMIT_LOGIN:500}
-    register: ${RATE_LIMIT_REGISTER:300}
-    audit: ${RATE_LIMIT_AUDIT:500}
+    login: ${RATE_LIMIT_LOGIN:3000}
+    register: ${RATE_LIMIT_REGISTER:3000}
+    audit: ${RATE_LIMIT_AUDIT:3000}
 
 springdoc:
   api-docs:

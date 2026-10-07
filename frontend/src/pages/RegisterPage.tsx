@@ -30,7 +30,12 @@ export const RegisterPage: React.FC = () => {
       });
       navigate('/quizzes');
     } catch (err: any) {
-      setError(err.message || 'Registration failed.');
+      const msg = err.message || 'Registration failed.';
+      if (msg.toLowerCase().includes('already taken') || (msg.toLowerCase().includes('username') && msg.toLowerCase().includes('taken'))) {
+        setError('this username is already taken');
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }

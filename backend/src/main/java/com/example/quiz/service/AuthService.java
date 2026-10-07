@@ -35,7 +35,7 @@ public class AuthService {
         String cleanEmail = request.getEmail().trim().toLowerCase();
 
         if (userRepository.existsByUsername(cleanUsername)) {
-            throw new BadRequestException("Username is already taken");
+            throw new BadRequestException("this username is already taken");
         }
         if (userRepository.existsByEmail(cleanEmail)) {
             throw new BadRequestException("Email is already in use");

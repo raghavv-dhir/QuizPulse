@@ -27,15 +27,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private static final long WINDOW_MS = 60_000L; // 1 minute window
 
-    // Configurable thresholds per endpoint with high-capacity defaults for 100+ concurrent teams
-    @org.springframework.beans.factory.annotation.Value("${quiz.ratelimit.login:500}")
-    private int maxLoginRequests = 500;
+    // Configurable thresholds per endpoint with high-capacity defaults for 300-400+ concurrent students/teams
+    @org.springframework.beans.factory.annotation.Value("${quiz.ratelimit.login:3000}")
+    private int maxLoginRequests = 3000;
 
-    @org.springframework.beans.factory.annotation.Value("${quiz.ratelimit.register:300}")
-    private int maxRegisterRequests = 300;
+    @org.springframework.beans.factory.annotation.Value("${quiz.ratelimit.register:3000}")
+    private int maxRegisterRequests = 3000;
 
-    @org.springframework.beans.factory.annotation.Value("${quiz.ratelimit.audit:500}")
-    private int maxAuditRequests = 500;
+    @org.springframework.beans.factory.annotation.Value("${quiz.ratelimit.audit:3000}")
+    private int maxAuditRequests = 3000;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

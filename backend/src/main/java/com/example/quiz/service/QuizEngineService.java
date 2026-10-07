@@ -59,7 +59,7 @@ public class QuizEngineService {
     private final PlatformTransactionManager transactionManager;
 
     private TransactionTemplate transactionTemplate;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(8);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(16);
     private final Map<Long, ScheduledFuture<?>> scheduledQuestionFutures = new ConcurrentHashMap<>();
     private final Map<Long, ScheduledFuture<?>> scheduledIntermissionFutures = new ConcurrentHashMap<>();
     private final Map<Long, ScheduledFuture<?>> pendingLeaderboardBroadcasts = new ConcurrentHashMap<>();
