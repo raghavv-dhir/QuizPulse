@@ -31,6 +31,16 @@ interface ViolationIncident {
   warningNumber: number;
 }
 
+// Helper to detect mobile or touch-screen devices
+const isMobileOrTouchDevice = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || '';
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(userAgent);
+  const hasTouch = 'ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+  const isNarrowScreen = window.innerWidth <= 1024;
+  return isMobileUA || (hasTouch && isNarrowScreen);
+};
+
 export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
   quizId,
   fullscreenRequired = false,
@@ -53,13 +63,17 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
     type: string;
   } | null>(null);
 
+  const activeModalRef = useRef(activeModal);
+  activeModalRef.current = activeModal;
+
+  const mountTimeRef = useRef<number>(Date.now());
   const [ackCountdown, setAckCountdown] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(!!document.fullscreenElement);
   const [violationsList, setViolationsList] = useState<ViolationIncident[]>([]);
 
-  // Debounce ref to coalesce cascading events (e.g. blur + visibilitychange + mouseleave on Alt+Tab)
+  // Debounce ref to coalesce cascading events
   const lastIncidentTimeRef = useRef<number>(0);
-  const DEBOUNCE_COALESCE_MS = 2500;
+  const DEBOUNCE_COALESCE_MS = 4000;
 
   // Handle countdown timer for modal acknowledgment
   useEffect(() => {
@@ -74,7 +88,17 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
     async (type: string, title: string, details: string) => {
       const now = Date.now();
 
-      // Intelligent Coalescing: Ignore rapid secondary triggers from the same action
+      // Grace period on initial mount to allow viewport and DOM stabilization (e.g. mobile address bar)
+      if (now - mountTimeRef.current < 2000) {
+        return;
+      }
+
+      // If a modal is already active or being acknowledged, ignore duplicate triggers
+      if (activeModalRef.current !== null) {
+        return;
+      }
+
+      // Intelligent Coalescing: Ignore rapid secondary triggers
       if (now - lastIncidentTimeRef.current < DEBOUNCE_COALESCE_MS) {
         return;
       }
@@ -123,7 +147,9 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
 
   // Setup Anti-Cheating Event Listeners
   useEffect(() => {
-    // 1. Tab Switch / Document Visibility Change
+    const isMobile = isMobileOrTouchDevice();
+
+    // 1. Tab Switch / Document Visibility Change (Reliable across desktop & mobile)
     const handleVisibilityChange = () => {
       if (document.hidden) {
         triggerViolation(
@@ -134,20 +160,37 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
       }
     };
 
-    // 2. Window Blur (Losing focus / secondary monitor clicks)
+    // 2. Window Blur (Desktop only - mobile triggers blur on address bar, keyboard, notifications)
+    let blurTimeout: any = null;
     const handleWindowBlur = () => {
-      triggerViolation(
-        'WINDOW_BLUR',
-        'Window Focus Lost',
-        'Focus left the test window. Interacting with other applications or screens is prohibited.'
-      );
+      if (isMobile) {
+        // Mobile browsers fire window.blur on address-bar collapse, virtual keyboard popup,
+        // and system overlays. Visibility change handles real app/tab switching on mobile.
+        return;
+      }
+      blurTimeout = setTimeout(() => {
+        if (!document.hasFocus() || document.hidden) {
+          triggerViolation(
+            'WINDOW_BLUR',
+            'Window Focus Lost',
+            'Focus left the test window. Interacting with other applications or screens is prohibited.'
+          );
+        }
+      }, 600);
     };
 
-    // 3. Fullscreen Exit
+    const handleWindowFocus = () => {
+      if (blurTimeout) {
+        clearTimeout(blurTimeout);
+        blurTimeout = null;
+      }
+    };
+
+    // 3. Fullscreen Exit (Desktop only - iOS Safari does not support Fullscreen API on HTML elements)
     const handleFullscreenChange = () => {
       const active = !!document.fullscreenElement;
       setIsFullscreen(active);
-      if (!active && fullscreenRequired) {
+      if (!active && fullscreenRequired && !isMobile) {
         triggerViolation(
           'FULLSCREEN_EXIT',
           'Fullscreen Mode Exited',
@@ -185,8 +228,13 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
     };
 
     // 5. Context Menu (Right Click)
+    // On mobile touchscreens, long-pressing (touch and hold) accidentally fires contextmenu.
+    // Silently prevent the context menu without punishing mobile users with a violation warning.
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
+      if (isMobile) {
+        return;
+      }
       triggerViolation(
         'CONTEXT_MENU_VIOLATION',
         'Right-Click Context Menu Blocked',
@@ -248,8 +296,11 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
       }
     };
 
-    // 7. Mouse Leaving Boundary (Multi-screen detection)
+    // 7. Mouse Leaving Boundary (Desktop multi-screen only)
+    // Mobile phones do not have cursors or multi-monitors.
+    // Finger lifts near the top/bottom of screen must NEVER trigger this.
     const handleMouseLeave = (e: MouseEvent) => {
+      if (isMobile) return;
       if (e.clientY <= 0 || e.clientX <= 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) {
         triggerViolation(
           'MOUSE_LEAVE',
@@ -259,8 +310,11 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
       }
     };
 
-    // 8. DevTools Window Dimension Heuristic
+    // 8. DevTools Window Dimension Heuristic (Desktop only)
+    // On mobile, window.outerHeight - window.innerHeight > 160 is frequently true due to
+    // device pixel ratio, dynamic URL address bars, bottom navigation bars, or virtual keyboards.
     const handleResize = () => {
+      if (isMobile) return;
       const widthThreshold = window.outerWidth - window.innerWidth > 160;
       const heightThreshold = window.outerHeight - window.innerHeight > 160;
       if (widthThreshold || heightThreshold) {
@@ -275,6 +329,7 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
     // Attach listeners
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleWindowBlur);
+    window.addEventListener('focus', handleWindowFocus);
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     window.addEventListener('copy', handleCopy);
     window.addEventListener('cut', handleCut);
@@ -285,8 +340,12 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
     window.addEventListener('resize', handleResize);
 
     return () => {
+      if (blurTimeout) {
+        clearTimeout(blurTimeout);
+      }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleWindowBlur);
+      window.removeEventListener('focus', handleWindowFocus);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       window.removeEventListener('copy', handleCopy);
       window.removeEventListener('cut', handleCut);
@@ -311,7 +370,11 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
   const handleAcknowledgeWarning = () => {
     if (ackCountdown > 0) return;
     setActiveModal(null);
+    activeModalRef.current = null;
+    lastIncidentTimeRef.current = Date.now();
   };
+
+  const isMobile = isMobileOrTouchDevice();
 
   return (
     <>
@@ -338,9 +401,9 @@ export const CheatingDetector: React.FC<CheatingDetectorProps> = ({
       </div>
 
       {/* -------------------------------------------------------------
-          FULLSCREEN ENFORCEMENT BANNER (IF REQUIRED)
+          FULLSCREEN ENFORCEMENT BANNER (IF REQUIRED - DESKTOP ONLY)
       ------------------------------------------------------------- */}
-      {fullscreenRequired && !isFullscreen && (
+      {fullscreenRequired && !isFullscreen && !isMobile && (
         <div className="fixed bottom-6 right-6 z-40">
           <button
             onClick={toggleFullscreen}
