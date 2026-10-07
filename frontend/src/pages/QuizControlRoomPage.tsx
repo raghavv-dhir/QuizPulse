@@ -24,6 +24,7 @@ import {
   Zap,
   Edit2,
   Trash2,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { toGamePin } from '../utils/gamePin';
 
@@ -38,6 +39,7 @@ export const QuizControlRoomPage: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'control' | 'questions' | 'teams'>('control');
   const [copiedLink, setCopiedLink] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Live round state
   const [currentSessionData, setCurrentSessionData] = useState<any | null>(null);
@@ -240,6 +242,18 @@ export const QuizControlRoomPage: React.FC = () => {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
+  const handleExportExcel = async () => {
+    if (!quiz) return;
+    try {
+      setExportLoading(true);
+      await api.admin.exportExcel(quizId, quiz.title);
+    } catch (err: any) {
+      alert(err.message || 'Failed to export Excel results');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   if (loading || !quiz) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
@@ -341,6 +355,16 @@ export const QuizControlRoomPage: React.FC = () => {
                 </button>
               </>
             )}
+
+            <button
+              onClick={handleExportExcel}
+              disabled={exportLoading}
+              className="btn-secondary text-xs !h-11 !bg-emerald-50 !border-emerald-200 !text-emerald-800 hover:!bg-emerald-100 flex items-center gap-1.5 shadow-xs cursor-pointer"
+              title="Export results to Excel (.xlsx)"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <span>{exportLoading ? 'Exporting...' : 'Export Excel (.xlsx)'}</span>
+            </button>
           </div>
         </div>
 
@@ -467,9 +491,20 @@ export const QuizControlRoomPage: React.FC = () => {
                   Live Standings
                 </h4>
               </div>
-              <span className="text-[10px] font-bold text-slate-400 font-mono">
-                {leaderboard.length} Teams
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-400 font-mono">
+                  {leaderboard.length} Teams
+                </span>
+                <button
+                  onClick={handleExportExcel}
+                  disabled={exportLoading}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+                  title="Export results to Excel (.xlsx)"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Export</span>
+                </button>
+              </div>
             </div>
 
             <div className="divide-y divide-slate-100 text-xs">

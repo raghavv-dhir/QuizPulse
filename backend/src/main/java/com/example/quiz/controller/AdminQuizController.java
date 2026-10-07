@@ -138,6 +138,20 @@ public class AdminQuizController {
                 .body(csvData);
     }
 
+    @GetMapping(value = "/{id}/export/excel", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    @Operation(summary = "Export authoritative quiz rankings as beautifully styled Excel sheet (.xlsx)")
+    public ResponseEntity<byte[]> exportResultsAsExcel(@PathVariable Long id) {
+        byte[] excelData = exportService.exportResultsAsExcel(id);
+        QuizDetailDto quiz = quizService.getQuizById(id, true);
+        String cleanTitle = (quiz != null && quiz.getTitle() != null)
+                ? quiz.getTitle().replaceAll("[^a-zA-Z0-9_.-]", "_")
+                : "quiz_" + id;
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + cleanTitle + "_Results.xlsx\"")
+                .header(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                .body(excelData);
+    }
+
     @GetMapping("/{id}/audit/logs")
     @Operation(summary = "View security audit and anti-cheating logs for this quiz")
     public ResponseEntity<ApiResponse<List<CheatingLog>>> getCheatingLogs(@PathVariable Long id) {

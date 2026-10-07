@@ -190,6 +190,54 @@ export const api = {
       request<string>(`/admin/quizzes/${id}/finish`, { method: 'POST' }),
     getAuditLogs: (id: number) =>
       request<any[]>(`/admin/quizzes/${id}/audit/logs`),
+    exportExcel: async (id: number, quizTitle?: string) => {
+      const token = getAuthToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${BASE_URL}/admin/quizzes/${id}/export/excel`, {
+        method: 'GET',
+        headers,
+      });
+      if (!response.ok) {
+        throw new Error('Failed to export Excel results. Status: ' + response.status);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const cleanTitle = (quizTitle || `quiz_${id}`).replace(/[^a-zA-Z0-9_-]/g, '_');
+      a.download = `${cleanTitle}_Results.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    },
+    exportCsv: async (id: number, quizTitle?: string) => {
+      const token = getAuthToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${BASE_URL}/admin/quizzes/${id}/export`, {
+        method: 'GET',
+        headers,
+      });
+      if (!response.ok) {
+        throw new Error('Failed to export CSV results. Status: ' + response.status);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const cleanTitle = (quizTitle || `quiz_${id}`).replace(/[^a-zA-Z0-9_-]/g, '_');
+      a.download = `${cleanTitle}_Results.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    },
   },
 
   questions: {

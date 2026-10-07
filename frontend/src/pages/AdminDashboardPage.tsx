@@ -31,6 +31,7 @@ import {
   User as UserIcon,
   Crown,
   AlertCircle,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { toGamePin } from '../utils/gamePin';
 import {
@@ -65,6 +66,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [exemplarLoading, setExemplarLoading] = useState(false);
   const [aiGladiatorsLoading, setAiGladiatorsLoading] = useState(false);
+  const [exportingQuizId, setExportingQuizId] = useState<number | null>(null);
 
   // Create Quiz Form State
   const [title, setTitle] = useState('');
@@ -204,6 +206,17 @@ export const AdminDashboardPage: React.FC = () => {
       alert(err.message || 'Failed to create AI Gladiators quiz');
     } finally {
       setAiGladiatorsLoading(false);
+    }
+  };
+
+  const handleExportExcel = async (quizId: number, quizTitle: string) => {
+    try {
+      setExportingQuizId(quizId);
+      await api.admin.exportExcel(quizId, quizTitle);
+    } catch (err: any) {
+      alert(err.message || 'Failed to export Excel results');
+    } finally {
+      setExportingQuizId(null);
     }
   };
 
@@ -677,21 +690,33 @@ export const AdminDashboardPage: React.FC = () => {
                       <span>{quiz.participantCount} Players</span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <Link
-                        to={`/admin/quizzes/${quiz.id}/control`}
-                        className="btn-primary flex-1 text-xs justify-center !h-10"
-                      >
-                        <Play className="w-3.5 h-3.5 fill-white" />
-                        <span>Host Control Room</span>
-                      </Link>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          to={`/admin/quizzes/${quiz.id}/control`}
+                          className="btn-primary flex-1 text-xs justify-center !h-10"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-white" />
+                          <span>Host Control Room</span>
+                        </Link>
+
+                        <button
+                          onClick={() => handleDeleteQuiz(quiz.id)}
+                          className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer"
+                          title="Delete Quiz"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
 
                       <button
-                        onClick={() => handleDeleteQuiz(quiz.id)}
-                        className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
-                        title="Delete Quiz"
+                        onClick={() => handleExportExcel(quiz.id, quiz.title)}
+                        disabled={exportingQuizId === quiz.id}
+                        className="w-full h-9 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                        title="Export beautifully formatted Excel sheet with podium standings, question breakdown, and analytics"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                        <span>{exportingQuizId === quiz.id ? 'Exporting...' : 'Export Results to Excel (.xlsx)'}</span>
                       </button>
                     </div>
                   </div>

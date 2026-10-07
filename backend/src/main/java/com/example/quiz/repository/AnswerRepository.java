@@ -45,4 +45,7 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
 
     @Query("SELECT a FROM Answer a LEFT JOIN FETCH a.user WHERE a.quiz.id = :quizId AND a.team IS NULL AND a.submissionStatus = 'ACCEPTED'")
     List<Answer> findIndividualAcceptedAnswersByQuizId(@Param("quizId") Long quizId);
+
+    @Query("SELECT a FROM Answer a LEFT JOIN FETCH a.team LEFT JOIN FETCH a.user LEFT JOIN FETCH a.question WHERE a.quiz.id = :quizId")
+    List<Answer> findAllWithDetailsByQuizId(@Param("quizId") Long quizId);
 }
