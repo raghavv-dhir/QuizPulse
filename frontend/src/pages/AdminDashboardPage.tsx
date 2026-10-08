@@ -184,11 +184,23 @@ export const AdminDashboardPage: React.FC = () => {
   const handleCreateAiGladiatorsQuiz = async () => {
     try {
       setAiGladiatorsLoading(true);
+      // Remove any previous versions of AI Gladiators quiz
+      try {
+        const existingList = await api.quizzes.list();
+        for (const eq of existingList) {
+          if (eq.title && eq.title.toLowerCase().includes('gladiator')) {
+            await api.admin.deleteQuiz(eq.id);
+          }
+        }
+      } catch (cleanupErr) {
+        console.warn('Could not clean up existing AI Gladiators quiz:', cleanupErr);
+      }
+
       const created = await api.admin.createQuiz({
         title: AI_GLADIATORS_QUIZ_TITLE,
         description: AI_GLADIATORS_QUIZ_DESCRIPTION,
         mode: 'TEAM',
-        defaultQuestionDurationSeconds: 30,
+        defaultQuestionDurationSeconds: 20,
         maxScorePerQuestion: 1000,
         scoringStrategy: 'LINEAR',
         negativeMarking: false,
@@ -493,7 +505,7 @@ export const AdminDashboardPage: React.FC = () => {
                 className="btn-secondary text-xs shadow-sm !h-10 text-indigo-800 bg-indigo-50 hover:bg-indigo-100 border-indigo-200"
               >
                 <Zap className="w-4 h-4 text-indigo-600" />
-                <span>{aiGladiatorsLoading ? 'Generating AI Gladiators...' : '⚡ Load AI Gladiators Quiz (20 MCQs)'}</span>
+                <span>{aiGladiatorsLoading ? 'Generating AI Gladiators...' : '⚡ Load AI Gladiators Quiz (15 MCQs)'}</span>
               </button>
 
               <button
@@ -644,7 +656,7 @@ export const AdminDashboardPage: React.FC = () => {
                   className="btn-primary text-xs !h-10 mx-auto shadow-md shadow-indigo-500/20 w-full"
                 >
                   <Zap className="w-4 h-4 text-amber-300" />
-                  <span>{aiGladiatorsLoading ? 'Generating AI Gladiators...' : '⚡ Load AI Gladiators Quiz (20 MCQs)'}</span>
+                  <span>{aiGladiatorsLoading ? 'Generating AI Gladiators...' : '⚡ Load AI Gladiators Quiz (15 MCQs)'}</span>
                 </button>
 
                 <button

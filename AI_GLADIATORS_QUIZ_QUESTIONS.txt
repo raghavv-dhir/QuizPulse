@@ -1,0 +1,266 @@
+========================================================================================
+AI GLADIATORS - KALADHAARA 2026 LMTSM
+OFFICIAL QUIZ QUESTIONS & ANSWER KEY (15 MCQs)
+Topics: Artificial Intelligence, Machine Learning, Data Science & Latest AI Trends
+Level: Easy to Medium | Time Limit: 20 Seconds per Question
+========================================================================================
+
+----------------------------------------------------------------------------------------
+QUESTION 1 [Topic: LLM Architecture | Level: Easy | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+What does the letter "T" stand for in "GPT", the revolutionary architecture powering models like ChatGPT?
+
+Options:
+  A) Tensor
+  B) Transformer
+  C) Transfer
+  D) Tokenizer
+
+Correct Answer: B) Transformer
+Explanation:
+GPT stands for "Generative Pre-trained Transformer". The Transformer architecture was introduced by Google researchers in the landmark 2017 paper "Attention Is All You Need" and is the backbone of modern Generative AI.
+
+----------------------------------------------------------------------------------------
+QUESTION 2 [Topic: Latest AI Trends (RAG) | Level: Easy-Medium | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+What does RAG stand for in modern generative AI systems, used to ground LLM answers in external private documents?
+
+Options:
+  A) Recursive Automated Generation
+  B) Real-time Augmented Gradient
+  C) Retrieval-Augmented Generation
+  D) Relational Analytical Graph
+
+Correct Answer: C) Retrieval-Augmented Generation
+Explanation:
+Retrieval-Augmented Generation (RAG) fetches relevant external documents from a vector database or search index and passes them as context into the LLM prompt, drastically reducing hallucinations.
+
+----------------------------------------------------------------------------------------
+QUESTION 3 [Topic: AI Reliability & Safety | Level: Easy | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+In the context of Large Language Models, what is an AI "hallucination"?
+
+Options:
+  A) The AI produces fluent, confident statements that are factually false or completely fabricated
+  B) The AI server runs out of GPU memory and abruptly restarts
+  C) The AI translates text into an ancient forgotten language
+  D) The AI deliberately pauses to simulate human thinking
+
+Correct Answer: A) The AI produces fluent, confident statements that are factually false or completely fabricated
+Explanation:
+Hallucination occurs when an LLM generates syntactically convincing, confident statements that contain false assertions, invented citations, or incorrect data.
+
+----------------------------------------------------------------------------------------
+QUESTION 4 [Topic: Machine Learning Fundamentals | Level: Easy | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+A machine learning model achieves 99.8% accuracy on training data but performs terribly on unseen test data. What problem has occurred?
+
+Options:
+  A) Underfitting
+  B) Overfitting
+  C) Gradient Explosion
+  D) Data Imbalance
+
+Correct Answer: B) Overfitting
+Explanation:
+Overfitting happens when a model memorizes the noise, outliers, and peculiarities of the training dataset instead of discovering the underlying generalized pattern.
+
+----------------------------------------------------------------------------------------
+QUESTION 5 [Topic: Latest AI Trends (Reasoning Models) | Level: Medium | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+Recent frontier reasoning models (such as OpenAI o1/o3 and DeepSeek R1) excel at complex logic, math, and code primarily through which technique?
+
+Options:
+  A) Hardcoding thousands of Python if-else rules
+  B) Using "Test-Time Compute" and internal Chain-of-Thought reasoning before responding
+  C) Scraping search engine results in real-time
+  D) Generating completely random responses until one passes a test
+
+Correct Answer: B) Using "Test-Time Compute" and internal Chain-of-Thought reasoning before responding
+Explanation:
+Reasoning models spend extra computational tokens at inference time ("test-time compute") to generate hidden reasoning chains, checking edge cases and self-correcting before providing the final answer.
+
+----------------------------------------------------------------------------------------
+QUESTION 6 [Topic: Data Science & Vector Search | Level: Medium | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+Why do modern AI search systems and vector databases (like Pinecone, Milvus, and Chroma) convert text and media into Vector Embeddings?
+
+Options:
+  A) To compress media files into smaller ZIP archives
+  B) To convert data into high-dimensional numerical coordinates for semantic similarity search
+  C) To scramble passwords for biometric encryption
+  D) To automatically fix syntax errors in SQL queries
+
+Correct Answer: B) To convert data into high-dimensional numerical coordinates for semantic similarity search
+Explanation:
+Vector embeddings represent semantic meaning as dense vectors in high-dimensional space. Closeness in vector space (e.g. cosine similarity) corresponds directly to conceptual similarity.
+
+----------------------------------------------------------------------------------------
+QUESTION 7 [Topic: Machine Learning Paradigms | Level: Easy | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+Which machine learning paradigm learns through trial and error by taking actions in an environment to maximize cumulative rewards?
+
+Options:
+  A) Supervised Learning
+  B) Unsupervised Clustering
+  C) Reinforcement Learning
+  D) Principal Component Analysis
+
+Correct Answer: C) Reinforcement Learning
+Explanation:
+Reinforcement Learning (RL) trains an agent through state transitions, actions, and numerical rewards/penalties, foundational to AlphaGo, robotics, and LLM fine-tuning.
+
+----------------------------------------------------------------------------------------
+QUESTION 8 [Topic: Modern AI Alignment | Level: Easy-Medium | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+What does RLHF stand for, the critical alignment technique used to make raw pre-trained LLMs safe, helpful, and conversational?
+
+Options:
+  A) Reinforcement Learning from Human Feedback
+  B) Recursive Language Hyperparameter Fitting
+  C) Real-time Learning with Hardware Frameworks
+  D) Random Linear Heuristic Filtering
+
+Correct Answer: A) Reinforcement Learning from Human Feedback
+Explanation:
+RLHF uses human comparison rankings to train a reward model, which then guides reinforcement learning (typically PPO or DPO) to steer LLMs towards helpful, polite, and safe answers.
+
+----------------------------------------------------------------------------------------
+QUESTION 9 [Topic: Multimodal AI | Level: Easy | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+What does it mean when a modern AI model is described as "Multimodal"?
+
+Options:
+  A) It runs simultaneously on Windows, macOS, and Linux
+  B) It can process and understand multiple types of input data (text, images, audio, video) within the same model
+  C) It requires multiple GPUs to boot up
+  D) It supports multi-user logins with separate accounts
+
+Correct Answer: B) It can process and understand multiple types of input data (text, images, audio, video) within the same model
+Explanation:
+Multimodal AI models (such as GPT-4o and Gemini 1.5 Pro) are trained to ingest, reason across, and produce multiple modalities—intertwining text, images, audio, and video natively.
+
+----------------------------------------------------------------------------------------
+QUESTION 10 [Topic: LLM Fundamentals | Level: Easy-Medium | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+In Large Language Models, what is the "Context Window"?
+
+Options:
+  A) The physical display dimensions of the user's laptop screen
+  B) The total token capacity (prompt + output) that an attention mechanism can hold in memory at one time
+  C) The daily time period during which cloud AI APIs are free to use
+  D) The graphical pop-up window used to enter credit card details
+
+Correct Answer: B) The total token capacity (prompt + output) that an attention mechanism can hold in memory at one time
+Explanation:
+The context window is the maximum length of conversation and documents (measured in tokens) that an LLM can pay attention to during a single generation request.
+
+----------------------------------------------------------------------------------------
+QUESTION 11 [Topic: Data Science Preprocessing | Level: Medium | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+In data science preprocessing, what does "Data Imputation" refer to?
+
+Options:
+  A) Deleting the entire table whenever an anomaly is detected
+  B) Filling in missing or null values with estimates such as the mean, median, mode, or KNN predictions
+  C) Encrypting sensitive customer columns before sending them to the cloud
+  D) Converting numerical data into raw audio waves
+
+Correct Answer: B) Filling in missing or null values with estimates such as the mean, median, mode, or KNN predictions
+Explanation:
+Imputation is the statistical practice of substituting estimated values for missing data points, preventing sample loss and enabling ML algorithms that require complete feature matrices.
+
+----------------------------------------------------------------------------------------
+QUESTION 12 [Topic: AI Agents & Tool Use | Level: Easy-Medium | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+In modern AI Agent frameworks (like CrewAI, AutoGen, and LangChain), what does "Tool Calling" allow an LLM to do?
+
+Options:
+  A) Order computer hardware parts from online stores
+  B) Connect with external APIs, calculators, code interpreters, and databases to take real-world actions
+  C) Modify the host operating system BIOS automatically
+  D) Overclock the user's CPU during intensive tasks
+
+Correct Answer: B) Connect with external APIs, calculators, code interpreters, and databases to take real-world actions
+Explanation:
+Tool Calling (Function Calling) allows an LLM to break free of static text generation by invoking external functions, searching the web, executing Python scripts, and querying live databases.
+
+----------------------------------------------------------------------------------------
+QUESTION 13 [Topic: Generative AI & Computer Vision | Level: Easy-Medium | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+Which modern generative architecture powers high-quality image generators like Midjourney, Stable Diffusion, and Flux?
+
+Options:
+  A) Diffusion Models
+  B) K-Nearest Neighbors (KNN)
+  C) Decision Trees
+  D) Support Vector Machines (SVM)
+
+Correct Answer: A) Diffusion Models
+Explanation:
+Diffusion models learn to reconstruct high-fidelity images by iteratively reversing a process that adds random Gaussian noise to images, steered by text conditioning prompts.
+
+----------------------------------------------------------------------------------------
+QUESTION 14 [Topic: Machine Learning Evaluation | Level: Medium | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+When evaluating a machine learning model on highly imbalanced data (e.g., detecting rare credit card fraud where 99.9% of transactions are legitimate), which metric is LEAST reliable by itself?
+
+Options:
+  A) Precision
+  B) Recall
+  C) F1-Score
+  D) Raw Accuracy
+
+Correct Answer: D) Raw Accuracy
+Explanation:
+A dummy classifier that predicts "Not Fraud" for every single transaction will achieve 99.9% raw accuracy while detecting zero fraud cases. Precision, Recall, and F1-Score provide true diagnostic value.
+
+----------------------------------------------------------------------------------------
+QUESTION 15 [Topic: Modern Prompt Engineering | Level: Easy-Medium | Time: 20s]
+----------------------------------------------------------------------------------------
+Question:
+What prompt engineering technique involves providing 2 to 3 example question-answer pairs directly in the prompt before asking the model to solve a new problem?
+
+Options:
+  A) Zero-Shot Prompting
+  B) Few-Shot Prompting
+  C) Model Quantization
+  D) Gradient Descent
+
+Correct Answer: B) Few-Shot Prompting
+Explanation:
+Few-shot prompting conditions the model on the target format and problem pattern by showing in-context demonstrations (shots) inside the prompt, without altering any underlying model weights.
+
+========================================================================================
+SUMMARY ANSWER KEY QUICK-REFERENCE:
+========================================================================================
+Q1:  B (Transformer)
+Q2:  C (Retrieval-Augmented Generation)
+Q3:  A (The AI produces fluent, confident statements that are factually false or completely fabricated)
+Q4:  B (Overfitting)
+Q5:  B (Using "Test-Time Compute" and internal Chain-of-Thought reasoning before responding)
+Q6:  B (To convert data into high-dimensional numerical coordinates for semantic similarity search)
+Q7:  C (Reinforcement Learning)
+Q8:  A (Reinforcement Learning from Human Feedback)
+Q9:  B (It can process and understand multiple types of input data (text, images, audio, video) within the same model)
+Q10: B (The total token capacity (prompt + output) that an attention mechanism can hold in memory at one time)
+Q11: B (Filling in missing or null values with estimates such as the mean, median, mode, or KNN predictions)
+Q12: B (Connect with external APIs, calculators, code interpreters, and databases to take real-world actions)
+Q13: A (Diffusion Models)
+Q14: D (Raw Accuracy)
+Q15: B (Few-Shot Prompting)
+========================================================================================
