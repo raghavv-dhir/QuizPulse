@@ -59,7 +59,7 @@ export const TeamPromptModal: React.FC<TeamPromptModalProps> = ({
     e.preventDefault();
     const trimmed = teamName.trim();
     if (!trimmed) {
-      setError('Please enter a team name');
+      setError('Please enter team name / Team Leader name');
       return;
     }
     if (trimmed.length < 2) {
@@ -135,13 +135,13 @@ export const TeamPromptModal: React.FC<TeamPromptModalProps> = ({
                 Team Quiz Registration
               </div>
               <h2 className="text-xl font-black text-white tracking-tight leading-snug">
-                Enter Team Name First
+                Enter team name/Enter Team Leader name
               </h2>
             </div>
           </div>
 
           <p className="mt-3 text-xs text-indigo-100/90 leading-relaxed">
-            <span className="font-semibold text-white">"{quizTitle}"</span> is a team-based competition. To enter the room, you must either name a new team or enter your teammate's code.
+            <span className="font-semibold text-white">"{quizTitle}"</span> is a team-based competition. To enter the room, you must either enter team name/Enter Team Leader name or enter your teammate's code.
           </p>
         </div>
 
@@ -194,7 +194,7 @@ export const TeamPromptModal: React.FC<TeamPromptModalProps> = ({
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-700">
-                    Team Name <span className="text-rose-500">*</span>
+                    Enter team name/Enter Team Leader name <span className="text-rose-500">*</span>
                   </label>
                   <button
                     type="button"
@@ -211,7 +211,7 @@ export const TeamPromptModal: React.FC<TeamPromptModalProps> = ({
                     required
                     autoFocus
                     maxLength={40}
-                    placeholder="e.g. Cyber Strikers"
+                    placeholder="Enter team name/Enter Team Leader name"
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     className="ui-input w-full !h-12 text-sm pl-4 pr-12 font-semibold"

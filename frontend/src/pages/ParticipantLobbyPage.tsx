@@ -325,10 +325,10 @@ export const ParticipantLobbyPage: React.FC = () => {
             </div>
             <div className="space-y-1">
               <h4 className="text-sm font-black text-amber-950">
-                Team Name Required Before Starting
+                Team Name / Team Leader Name Required Before Starting
               </h4>
               <p className="text-xs text-amber-800/80 max-w-md mx-auto leading-relaxed">
-                This is a team-based quiz! You must enter your team name or join with an invite code before the host starts the game.
+                This is a team-based quiz! You must enter team name/Enter Team Leader name or join with an invite code before the host starts the game.
               </p>
             </div>
             <button
@@ -336,7 +336,7 @@ export const ParticipantLobbyPage: React.FC = () => {
               className="btn-primary text-xs !h-10 mx-auto shadow-md shadow-indigo-500/20"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Enter Team Name First</span>
+              <span>Enter team name/Enter Team Leader name</span>
             </button>
           </div>
         ) : (
@@ -485,13 +485,13 @@ export const ParticipantLobbyPage: React.FC = () => {
               <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
                 <div className="space-y-1">
                   <h3 className="text-base font-extrabold text-slate-900">Create a Team</h3>
-                  <p className="text-xs text-slate-500">Pick a cool team name and invite friends</p>
+                  <p className="text-xs text-slate-500">Enter team name/Enter Team Leader name and invite friends</p>
                 </div>
                 <form onSubmit={handleCreateTeam} className="space-y-3">
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Code Wizards"
+                    placeholder="Enter team name/Enter Team Leader name"
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     className="ui-input w-full !h-11 text-xs"
